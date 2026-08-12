@@ -1,0 +1,2486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Anniversary</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #ffe6eb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        .corner-img {
+            position: fixed;
+            width: 150px;
+            height: auto;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .top-left { 
+            top: 0; 
+            left: 0; 
+            transform: rotate(180deg); 
+        }
+        .top-right { 
+            top: 0; 
+            right: 0; 
+            transform: rotate(180deg) scaleX(-1);
+        }
+        .bottom-left { 
+            bottom: 0; 
+            left: 0; 
+            transform: scaleX(-1);
+        }
+        .bottom-right { 
+            bottom: 0; 
+            right: 0; 
+            transform: rotate(0deg); 
+        }
+
+        .fullscreen-prompt-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .fullscreen-prompt-text {
+            color: #d90429;
+            font-weight: bold;
+            font-size: 0.85rem;
+            margin-bottom: 2px;
+        }
+
+        .red-arrow {
+            width: 22px;
+            height: auto;
+            margin-bottom: 2px;
+        }
+
+        .fullscreen-btn {
+            background-color: #ff4d6d;
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .fullscreen-btn:hover {
+            background-color: #d90429;
+        }
+
+        .main-card {
+            position: relative;
+            z-index: 2;
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            text-align: center;
+            max-width: 720px;
+            width: 96%;
+            max-height: 95vh;
+            overflow-y: auto;
+        }
+
+        h1 {
+            color: #d90429;
+            font-size: 1.6rem;
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+
+        p {
+            color: #555;
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+        }
+
+        .app-menu {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        .app-icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .app-icon-btn img {
+            width: 85px;
+            height: 85px;
+            object-fit: cover;
+            border-radius: 20px;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+            border: 3px solid #ff4d6d;
+            margin-bottom: 8px;
+            transition: border-color 0.2s, opacity 0.2s, transform 0.2s;
+        }
+
+        .app-icon-btn:hover img {
+            border-color: #d90429;
+            opacity: 0.95;
+            transform: scaleD(1.05);
+            transform: scale(1.05);
+        }
+
+        .app-icon-btn span {
+            font-size: 0.9rem;
+            color: #d90429;
+            font-weight: bold;
+            max-width: 100px;
+        }
+
+        .action-btn {
+            background-color: #ff4d6d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 0.95rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .action-btn:hover {
+            background-color: #d90429;
+        }
+
+        .back-btn {
+            background-color: #ff4d6d;
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            font-size: 0.8rem;
+            border-radius: 12px;
+            cursor: pointer;
+            margin-bottom: 6px;
+            transition: background-color 0.2s;
+            float: left;
+        }
+
+        .back-btn:hover {
+            background-color: #d90429;
+        }
+
+        .section-content {
+            display: none;
+            text-align: left;
+        }
+
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .memory-tile {
+            aspect-ratio: 1 / 1;
+            border: none;
+            border-radius: 8px;
+            overflow: hidden;
+            padding: 0;
+            cursor: pointer;
+            background-color: #ffd6de;
+        }
+
+        .memory-tile img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.15s, opacity 0.15s;
+        }
+
+        .memory-tile:hover img {
+            transform: scale(1.06);
+            opacity: 0.9;
+        }
+
+        /* Hidden automatically by JS if the corresponding photo file doesn't exist */
+        .memory-tile.memory-tile-empty {
+            display: none;
+        }
+
+        .memory-lightbox-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+            cursor: zoom-out;
+        }
+
+        .memory-lightbox-overlay.active {
+            display: flex;
+        }
+
+        .memory-lightbox-overlay img {
+            max-width: 90%;
+            max-height: 85%;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        .memory-lightbox-close {
+            position: absolute;
+            top: 18px;
+            right: 24px;
+            color: white;
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            background: none;
+            border: none;
+            line-height: 1;
+        }
+
+        .game-container-outer {
+            position: relative;
+            display: inline-block;
+            margin: 0 auto;
+        }
+
+        .game-big-flower {
+            position: absolute;
+            width: 300px;
+            height: auto;
+            z-index: 35;
+            pointer-events: none;
+        }
+        .gbf-top-left { top: -35px; left: -35px; transform: rotate(0deg); }
+        .gbf-top-right { 
+            top: -40px; 
+            right: -15px; 
+            transform: scaleX(-1) rotate(270deg);
+        }
+        .gbf-bottom-left { bottom: -35px; left: -35px; transform: scaleY(-1); }
+        .gbf-bottom-right { bottom: -35px; right: -35px; transform: scaleX(-1) scaleY(-1); }
+
+        .game-wrapper {
+            position: relative;
+            width: 640px;
+            height: 480px;
+            margin: 0 auto;
+            border-radius: 10px;
+            box-sizing: border-box;
+            overflow: hidden;
+            background-color: #000;
+        }
+
+        #gameCanvas {
+            background-color: #000000;
+            display: block;
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        #fullscreen-prompt-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 30;
+            cursor: pointer;
+        }
+
+        #fullscreen-prompt-overlay img {
+            width: 100px;
+            height: auto;
+            transform: rotate(180deg);
+        }
+
+        #start-screen-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            z-index: 25;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #start-screen-overlay img {
+            width: 568px;
+            height: 360px;
+            object-fit: fill; 
+            display: block;
+        }
+
+        .game-wrapper:-webkit-full-screen ~ .game-big-flower,
+        .game-wrapper:fullscreen ~ .game-big-flower {
+            display: none;
+        }
+
+        .game-wrapper:-webkit-full-screen,
+        .game-wrapper:fullscreen {
+            width: 100vw;
+            height: 100vh;
+            background: #000000;
+            border-radius: 0;
+            overflow: visible;
+        }
+        
+        .game-wrapper:-webkit-full-screen #gameCanvas,
+        .game-wrapper:fullscreen #gameCanvas {
+            width: 100vw;
+            height: 100vh;
+            object-fit: contain;
+        }
+        
+        .game-wrapper:-webkit-full-screen #start-screen-overlay img,
+        .game-wrapper:fullscreen #start-screen-overlay img {
+            width: 100vw;
+            height: 100vh;
+            object-fit: fill;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Site background song added here -->
+    <audio id="site-bg-music" loop>
+        <source src="yaamc.mp3" type="audio/mp3">
+    </audio>
+
+    <audio id="game-music" loop>
+        <source src="gamemusic.mp3" type="audio/mp3">
+    </audio>
+
+    <audio id="ambient-music" loop>
+        <source src="ambientmusic.mp3" type="audio/mp3">
+    </audio>
+
+    <audio id="sfx-shoot"><source src="shoot.mp3" type="audio/mp3"></audio>
+    <audio id="sfx-hit"><source src="hit.mp3" type="audio/mp3"></audio>
+    <audio id="sfx-enemy-hit"><source src="enemyhit.mp3" type="audio/mp3"></audio>
+    <audio id="sfx-enemy-death"><source src="enemydeath.mp3" type="audio/mp3"></audio>
+    <audio id="sfx-enemy-ambient"><source src="enemyambient.mp3" type="audio/mp3"></audio>
+    <audio id="sfx-enemy2-ambient"><source src="enemy2ambient.mp3" type="audio/mp3"></audio>
+    <audio id="sfx-enemy3-ambient"><source src="enemy3ambient.mp3" type="audio/mp3"></audio>
+    <audio id="sfx-pickup"><source src="yay.mp3" type="audio/mp3"></audio>
+    <audio id="sfx-prank-enter"><source src="prankenter.mp3" type="audio/mp3"></audio>
+
+    <!-- Room Entry Specific Audio Track Elements -->
+    <audio id="sfx-room2"><source src="room2intro.mp3" type="audio/mp3"></audio>
+    <audio id="sfx-room4"><source src="room4intro.mp3" type="audio/mp3"></audio>
+    <audio id="sfx-room5"><source src="room5intro.mp3" type="audio/mp3"></audio>
+
+    <!-- Prank Room Video Element -->
+    <video id="prank-video" src="prankvideo.mp4" loop playsinline preload="auto" style="display:none;"></video>
+
+    <img src="flower.png" class="corner-img top-left" alt="Flower Corner">
+    <img src="flower.png" class="corner-img top-right" alt="Flower Corner">
+    <img src="flower.png" class="corner-img bottom-left" alt="Flower Corner">
+    <img src="flower.png" class="corner-img bottom-right" alt="Flower Corner">
+
+    <div class="main-card">
+        
+        <div id="home-screen">
+            <h1>Happy 1 Year Buby!!! :D</h1>
+            <p>Choose an app, my love:</p>
+
+            <div class="app-menu">
+                <button class="app-icon-btn" onclick="openSection('reasons-section')">
+                    <img src="btn-reasons.png" alt="Reasons Icon">
+                    <span>100 Reasons</span>
+                </button>
+
+                <button class="app-icon-btn" onclick="openSection('gallery-section')">
+                    <img src="btn-gallery.png" alt="Our Photos">
+                    <span>Our Photos</span>
+                </button>
+
+                <button class="app-icon-btn" onclick="openSection('game-section'); initGameSession();">
+                    <img src="btn-game.png" alt="Game Icon">
+                    <span>Mini Game</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="reasons-section" class="section-content">
+            <button class="back-btn" onclick="goHome()">⬅ Back</button>
+            <div style="clear: both;"></div>
+            <h2 style="color: #d90429; text-align:center;">100 Reasons Why I Love You</h2>
+            <p style="text-align: center;" id="reason-display">Click the button below to get your first reason!</p>
+            <div style="text-align: center;">
+                <button class="action-btn" onclick="alert('Logic for reasons goes here')">Next Reason 💕</button>
+            </div>
+        </div>
+
+        <!-- Our Photos Section with Meetup 1, 2, and 3 Sub-Apps -->
+        <div id="gallery-section" class="section-content">
+            <button class="back-btn" onclick="goHome()">⬅ Back</button>
+            <div style="clear: both;"></div>
+            <h2 style="color: #d90429; text-align:center;">Our Photos</h2>
+            <p style="text-align: center; font-size: 0.9rem;">Select a meetup memory:</p>
+
+            <div class="app-menu">
+                <button class="app-icon-btn" onclick="openSection('meetup1-section')">
+                    <img src="meetup1-icon.png" alt="Meetup 1 Icon">
+                    <span>Meetup 1</span>
+                </button>
+
+                <button class="app-icon-btn" onclick="openSection('meetup2-section')">
+                    <img src="meetup2-icon.png" alt="Meetup 2 Icon">
+                    <span>Meetup 2</span>
+                </button>
+
+                <button class="app-icon-btn" onclick="openSection('meetup3-section')">
+                    <img src="meetup3-icon.png" alt="Meetup 3 Icon">
+                    <span>Meetup 3</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Meetup 1 Content View -->
+        <div id="meetup1-section" class="section-content">
+            <button class="back-btn" onclick="openSection('gallery-section')">⬅ Back</button>
+            <div style="clear: both;"></div>
+            <h2 style="color: #d90429; text-align:center;">Meetup 1 Memories</h2>
+            <p style="text-align: center; font-size: 0.9rem;">Tap a photo to zoom in!</p>
+            <div class="memory-grid" id="meetup1-grid"></div>
+        </div>
+
+        <!-- Meetup 2 Content View -->
+        <div id="meetup2-section" class="section-content">
+            <button class="back-btn" onclick="openSection('gallery-section')">⬅ Back</button>
+            <div style="clear: both;"></div>
+            <h2 style="color: #d90429; text-align:center;">Meetup 2 Memories</h2>
+            <p style="text-align: center; font-size: 0.9rem;">Photos from our second meetup will go here!</p>
+        </div>
+
+        <!-- Meetup 3 Content View -->
+        <div id="meetup3-section" class="section-content">
+            <button class="back-btn" onclick="openSection('gallery-section')">⬅ Back</button>
+            <div style="clear: both;"></div>
+            <h2 style="color: #d90429; text-align:center;">Meetup 3 Memories</h2>
+            <p style="text-align: center; font-size: 0.9rem;">Photos from our third meetup will go here!</p>
+        </div>
+
+        <div id="game-section" class="section-content">
+            <button class="back-btn" onclick="goHome(); stopGameEngine();">⬅ Back</button>
+            <div style="clear: both;"></div>
+            <h2 style="color: #d90429; text-align:center; margin-top:0; font-size: 0.95rem;">The Binding of Bebilia: The Fight for The Letter</h2>
+            
+            <div class="fullscreen-prompt-container">
+                <div class="fullscreen-prompt-text">PLEASE FULLSCREENIT</div>
+                <img src="arrow.png" class="red-arrow" alt="Red Arrow">
+                <button class="fullscreen-btn" onclick="toggleFullscreen()">Fullscreen Game ⛶</button>
+            </div>
+            
+            <div class="game-container-outer" style="display: block; text-align: center;">
+                <img src="flower-border.png" class="game-big-flower gbf-top-right" alt="Flower">
+
+                <div class="game-wrapper" id="gameWrapper">
+                    <div id="fullscreen-prompt-overlay" onclick="toggleFullscreen()">
+                        <img src="arrow.png" alt="Arrow">
+                    </div>
+
+                    <div id="start-screen-overlay" onclick="startActualGame()">
+                        <img src="startscreen.png" alt="Start Screen">
+                    </div>
+
+                    <canvas id="gameCanvas" width="1280" height="960"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div id="letter-section" class="section-content">
+            <button class="back-btn" onclick="openSection('game-section'); initGameSession();">⬅ Back to Game</button>
+            <div style="clear: both;"></div>
+            <h2 style="color: #d90429; text-align:center;">A Letter For You</h2>
+            <p style="line-height: 1.6; color: #444;">Your long, beautiful letter will go right here...</p>
+        </div>
+
+    </div>
+
+    <!-- Lightbox overlay used to zoom into memory photos -->
+    <div id="memoryLightbox" class="memory-lightbox-overlay" onclick="closeMemoryLightbox()">
+        <button class="memory-lightbox-close" onclick="event.stopPropagation(); closeMemoryLightbox();">&times;</button>
+        <img id="memoryLightboxImg" src="" alt="Zoomed memory photo">
+    </div>
+
+    <script>
+        // Try playing the background song on initial user interaction to bypass browser autoplay policies
+        document.addEventListener('click', function initSiteMusic() {
+            var siteMusic = document.getElementById("site-bg-music");
+            if (siteMusic && siteMusic.paused) {
+                // Don't play it if the game is currently fullscreened
+                if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                    siteMusic.play().catch(e => { console.log("Site music restricted"); });
+                }
+            }
+        }, { once: true });
+
+        function playSiteBgMusic() {
+            var siteMusic = document.getElementById("site-bg-music");
+            if (siteMusic && (!document.fullscreenElement && !document.webkitFullscreenElement)) {
+                siteMusic.play().catch(e => { console.log("Site music restricted"); });
+            }
+        }
+
+        function stopSiteBgMusic() {
+            var siteMusic = document.getElementById("site-bg-music");
+            if (siteMusic) {
+                siteMusic.pause();
+            }
+        }
+
+        function playSfx(id, volume = 1.0) {
+            var sfx = document.getElementById(id);
+            if (sfx) {
+                sfx.currentTime = 0;
+                sfx.volume = volume;
+                sfx.play().catch(e => { console.log("SFX restricted"); });
+            }
+        }
+
+        function stopEnemyAmbientSounds() {
+            const soundIds = ['sfx-enemy-ambient', 'sfx-enemy2-ambient', 'sfx-enemy3-ambient'];
+            soundIds.forEach(id => {
+                let sfx = document.getElementById(id);
+                if (sfx) {
+                    sfx.pause();
+                    sfx.currentTime = 0;
+                }
+            });
+        }
+
+        function playGameMusic() {
+            var gameMusic = document.getElementById("game-music");
+            gameMusic.play().catch(e => { 
+                console.log("Audio autoplay restricted"); 
+            });
+        }
+
+        function stopGameMusic() {
+            var gameMusic = document.getElementById("game-music");
+            gameMusic.pause();
+            gameMusic.currentTime = 0;
+        }
+
+        function playAmbientMusic() {
+            var ambientMusic = document.getElementById("ambient-music");
+            if (ambientMusic) {
+                ambientMusic.volume = 0.5;
+                ambientMusic.play().catch(e => { 
+                    console.log("Ambient music restricted"); 
+                });
+            }
+        }
+
+        function stopAmbientMusic() {
+            var ambientMusic = document.getElementById("ambient-music");
+            if (ambientMusic) {
+                ambientMusic.pause();
+                ambientMusic.currentTime = 0;
+            }
+        }
+
+        function toggleFullscreen() {
+            var wrapper = document.getElementById("gameWrapper");
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                if (wrapper.requestFullscreen) {
+                    wrapper.requestFullscreen();
+                } else if (wrapper.webkitRequestFullscreen) {
+                    wrapper.webkitRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+            }
+        }
+
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+
+        function handleFullscreenChange() {
+            var promptOverlay = document.getElementById("fullscreen-prompt-overlay");
+            var startOverlay = document.getElementById("start-screen-overlay");
+            
+            if (document.fullscreenElement || document.webkitFullscreenElement) {
+                // Game is fullscreened: stop background song yaamc.mp3
+                stopSiteBgMusic();
+                
+                promptOverlay.style.display = "none";
+                if (!gameRunning) {
+                    startOverlay.style.display = "flex";
+                    playGameMusic();
+                }
+            } else {
+                // Game exited fullscreen: resume background song yaamc.mp3
+                playSiteBgMusic();
+
+                promptOverlay.style.display = "flex";
+                startOverlay.style.display = "none";
+                stopGameMusic();
+                stopAmbientMusic();
+                stopEnemyAmbientSounds();
+                stopGameEngine();
+            }
+        }
+
+        function openSection(sectionId) {
+            document.getElementById("home-screen").style.display = "none";
+            var sections = document.getElementsByClassName("section-content");
+            for (var i = 0; i < sections.length; i++) {
+                sections[i].style.display = "none";
+            }
+            document.getElementById(sectionId).style.display = "block";
+            
+            // Ensure background track plays when navigating sections outside the fullscreen game
+            playSiteBgMusic();
+        }
+
+        // Builds a photo grid inside `gridId`, looking for images named
+        // `${filePrefix}1.png` through `${filePrefix}${count}.png`.
+        // Any photo that doesn't exist yet is simply skipped (no broken-image icon).
+        function buildMemoryGrid(gridId, filePrefix, count) {
+            var grid = document.getElementById(gridId);
+            if (!grid || grid.dataset.built === "true") return;
+            grid.dataset.built = "true";
+
+            for (var i = 1; i <= count; i++) {
+                (function(index) {
+                    var src = filePrefix + index + ".png";
+
+                    var tile = document.createElement("button");
+                    tile.className = "memory-tile";
+                    tile.type = "button";
+
+                    var img = document.createElement("img");
+                    img.src = src;
+                    img.alt = "Memory photo " + index;
+                    img.loading = "lazy";
+
+                    img.onerror = function() {
+                        tile.classList.add("memory-tile-empty");
+                    };
+
+                    tile.onclick = function() {
+                        openMemoryLightbox(src);
+                    };
+
+                    tile.appendChild(img);
+                    grid.appendChild(tile);
+                })(i);
+            }
+        }
+
+        function openMemoryLightbox(src) {
+            var overlay = document.getElementById("memoryLightbox");
+            var img = document.getElementById("memoryLightboxImg");
+            img.src = src;
+            overlay.classList.add("active");
+        }
+
+        function closeMemoryLightbox() {
+            var overlay = document.getElementById("memoryLightbox");
+            overlay.classList.remove("active");
+        }
+
+        // Build the Meetup 1 grid (5 columns x 20 rows = 100 photo slots).
+        // Add photos by placing files named 1photo1.png, 1photo2.png, ... 1photo100.png
+        // in the same folder as this HTML file.
+        buildMemoryGrid("meetup1-grid", "1photo", 100);
+
+        function goHome() {
+            stopGameEngine();
+            stopGameMusic();
+            stopAmbientMusic();
+            stopEnemyAmbientSounds();
+            let prankVid = document.getElementById("prank-video");
+            if (prankVid) { prankVid.pause(); prankVid.currentTime = 0; }
+            if (document.fullscreenElement || document.webkitFullscreenElement) {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+            }
+            var sections = document.getElementsByClassName("section-content");
+            for (var i = 0; i < sections.length; i++) {
+                sections[i].style.display = "none";
+            }
+            document.getElementById("home-screen").style.display = "block";
+            
+            // Resume site background music
+            playSiteBgMusic();
+        }
+
+        let canvas, ctx;
+        let enemyFlashCanvas = null, enemyFlashCtx = null;
+        let gameInterval = null;
+        let player, keys = {}, tears = [], enemies = [], dyingEnemies = [];
+        let shootCooldown = 0;
+        let gameRunning = false;
+        let gamePausedForMenu = false;
+        let hitCooldown = 0;
+
+        let currentRoom = 1; 
+        let transitionAnim = 0; 
+        let slideDirection = 'up'; 
+        let discoveredRooms = { 1: true, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false };
+        let clearedRooms = { 1: true, 2: false, 3: false, 4: false, 5: false, 6: true, 7: true };
+
+        let itemInRoom3 = { x: 640, y: 480, size: 53.3, collected: false };
+        let itemInRoom7 = { x: 640, y: 480, size: 53.3, collected: false };
+
+        // Shoopdawhoop: active item picked up in room 7. Press Space to fire
+        // a piercing Brimstone-style laser for 3 seconds dealing 100 total damage.
+        let activeItemLaser = {
+            firing: false,
+            timer: 0,
+            duration: 180, // 3 seconds at 60fps
+            totalDamage: 100,
+            direction: "down",
+            beamWidth: 26
+        };
+        
+        let trinketInWorld = {
+            active: false,
+            x: 0,
+            y: 0,
+            size: 40,
+            collected: false
+        };
+
+        // ==========================================
+        // ITEM BANNER & CONFETTI SYSTEMS
+        // ==========================================
+        let confettiParticles = [];
+
+        function triggerConfetti(x, y) {
+            const colors = ["#ff4136", "#2ecc40", "#0074d9", "#ffdc00", "#f012be", "#7fdbff", "#ffffff"];
+            for (let i = 0; i < 50; i++) {
+                confettiParticles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 16,
+                    vy: Math.random() * -12 - 5,
+                    size: Math.random() * 8 + 6,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    rotation: Math.random() * Math.PI * 2,
+                    vRot: (Math.random() - 0.5) * 0.2,
+                    gravity: 0.35,
+                    alpha: 1.0,
+                    decay: Math.random() * 0.015 + 0.01
+                });
+            }
+        }
+
+        function updateConfetti() {
+            for (let i = confettiParticles.length - 1; i >= 0; i--) {
+                const p = confettiParticles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += p.gravity;
+                p.rotation += p.vRot;
+                p.alpha -= p.decay;
+
+                if (p.alpha <= 0) {
+                    confettiParticles.splice(i, 1);
+                }
+            }
+        }
+
+        function drawConfetti(ctx) {
+            ctx.save();
+            for (const p of confettiParticles) {
+                ctx.globalAlpha = Math.max(0, p.alpha);
+                ctx.fillStyle = p.color;
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.rotation);
+                ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+            }
+            ctx.restore();
+        }
+
+        const itemBanner = {
+            active: false,
+            title: "",
+            subtitle: "",
+            timer: 0,
+            duration: 3000,      
+            slideDuration: 350,  
+            width: 540,
+            height: 85,
+            targetY: 25,         
+            hiddenY: -110,       
+            currentY: -110
+        };
+
+        function triggerItemBanner(title, subtitle) {
+            itemBanner.active = true;
+            itemBanner.title = title;
+            itemBanner.subtitle = subtitle;
+            itemBanner.timer = 0;
+            itemBanner.currentY = itemBanner.hiddenY;
+        }
+
+        function updateItemBanner(deltaTime) {
+            if (!itemBanner.active) return;
+
+            itemBanner.timer += deltaTime;
+
+            const slideInEnd = itemBanner.slideDuration;
+            const slideOutStart = itemBanner.duration - itemBanner.slideDuration;
+
+            if (itemBanner.timer < slideInEnd) {
+                const progress = itemBanner.timer / slideInEnd;
+                const ease = 1 - (1 - progress) * (1 - progress);
+                itemBanner.currentY = itemBanner.hiddenY + (itemBanner.targetY - itemBanner.hiddenY) * ease;
+            } else if (itemBanner.timer < slideOutStart) {
+                itemBanner.currentY = itemBanner.targetY;
+            } else if (itemBanner.timer < itemBanner.duration) {
+                const progress = (itemBanner.timer - slideOutStart) / itemBanner.slideDuration;
+                const ease = progress * progress;
+                itemBanner.currentY = itemBanner.targetY + (itemBanner.hiddenY - itemBanner.targetY) * ease;
+            } else {
+                itemBanner.active = false;
+            }
+        }
+
+        function drawItemBanner(ctx) {
+            if (!itemBanner.active) return;
+
+            const boxX = (canvas.width - itemBanner.width) / 2;
+            const boxY = itemBanner.currentY;
+
+            ctx.save();
+            ctx.fillStyle = "#000000";
+            ctx.fillRect(boxX, boxY, itemBanner.width, itemBanner.height);
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 3;
+            ctx.strokeRect(boxX, boxY, itemBanner.width, itemBanner.height);
+
+            ctx.textAlign = "center";
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 28px Arial";
+            ctx.fillText(itemBanner.title, canvas.width / 2, boxY + 36);
+            ctx.font = "18px Arial";
+            ctx.fillText(itemBanner.subtitle, canvas.width / 2, boxY + 66);
+            ctx.restore();
+        }
+
+        // ==========================================
+        // ENEMY ROOM ANNOUNCEMENT BANNER SYSTEM
+        // ==========================================
+        const roomBanner = {
+            active: false,
+            text: "",
+            timer: 0,
+            duration: 3000,      
+            slideDuration: 350,  
+            width: 580,
+            height: 75,
+            targetY: 25,
+            hiddenY: -110,
+            currentY: -110
+        };
+
+        function triggerRoomBanner(text, sfxId) {
+            roomBanner.active = true;
+            roomBanner.text = text;
+            roomBanner.timer = 0;
+            roomBanner.currentY = roomBanner.hiddenY;
+
+            if (sfxId) {
+                playSfx(sfxId, 1.0);
+            }
+        }
+
+        function updateRoomBanner(deltaTime) {
+            if (!roomBanner.active) return;
+
+            roomBanner.timer += deltaTime;
+
+            const slideInEnd = roomBanner.slideDuration;
+            const slideOutStart = roomBanner.duration - roomBanner.slideDuration;
+
+            if (roomBanner.timer < slideInEnd) {
+                const progress = roomBanner.timer / slideInEnd;
+                const ease = 1 - (1 - progress) * (1 - progress);
+                roomBanner.currentY = roomBanner.hiddenY + (roomBanner.targetY - roomBanner.hiddenY) * ease;
+            } else if (roomBanner.timer < slideOutStart) {
+                roomBanner.currentY = roomBanner.targetY;
+            } else if (roomBanner.timer < roomBanner.duration) {
+                const progress = (roomBanner.timer - slideOutStart) / roomBanner.slideDuration;
+                const ease = progress * progress;
+                roomBanner.currentY = roomBanner.targetY + (roomBanner.hiddenY - roomBanner.targetY) * ease;
+            } else {
+                roomBanner.active = false;
+            }
+        }
+
+        function drawRoomBanner(ctx) {
+            if (!roomBanner.active) return;
+
+            const boxX = (canvas.width - roomBanner.width) / 2;
+            const boxY = roomBanner.currentY;
+
+            ctx.save();
+            ctx.fillStyle = "#000000";
+            ctx.fillRect(boxX, boxY, roomBanner.width, roomBanner.height);
+            ctx.strokeStyle = "#d90429"; 
+            ctx.lineWidth = 4;
+            ctx.strokeRect(boxX, boxY, roomBanner.width, roomBanner.height);
+
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillStyle = "#ff4d6d";
+            ctx.font = "bold 32px Arial";
+            ctx.fillText(roomBanner.text, canvas.width / 2, boxY + roomBanner.height / 2);
+            ctx.restore();
+        }
+
+        const floorSprite = new Image();
+        floorSprite.src = "floor.png";
+
+        const skullSprite = new Image();
+        skullSprite.src = "skull.png";
+
+        const controlImg1 = new Image();
+        controlImg1.src = "control1.png";
+
+        const controlImg2 = new Image();
+        controlImg2.src = "control2.png";
+
+        const controlImg3 = new Image();
+        controlImg3.src = "control3.png";
+
+        const controlImg4 = new Image();
+        controlImg4.src = "control4.png";
+
+        const spriteDown = new Image();
+        spriteDown.src = "player_down.png";
+
+        const spriteUp = new Image();
+        spriteUp.src = "player_up.png";
+
+        const spriteLeft = new Image();
+        spriteLeft.src = "player_left.png";
+
+        const spriteRight = new Image();
+        spriteRight.src = "player_right.png";
+
+        const tearSprite = new Image();
+        tearSprite.src = "tear.png";
+
+        const heartSprite = new Image();
+        heartSprite.src = "heart.png";
+
+        const halfHeartSprite = new Image();
+        halfHeartSprite.src = "hearthalf.png";
+
+        const enemySpriteUp = new Image();
+        enemySpriteUp.src = "enemy1up.png";
+
+        const enemySpriteDown = new Image();
+        enemySpriteDown.src = "enemy1down.png";
+
+        const enemySpriteLeft = new Image();
+        enemySpriteLeft.src = "enemy1left.png";
+
+        const enemySpriteRight = new Image();
+        enemySpriteRight.src = "enemy1right.png";
+
+        const enemyDeathSprite = new Image();
+        enemyDeathSprite.src = "enemy1death.png";
+
+        const enemy2SpriteUp = new Image();
+        enemy2SpriteUp.src = "enemy2up.png";
+
+        const enemy2SpriteDown = new Image();
+        enemy2SpriteDown.src = "enemy2down.png";
+
+        const enemy2SpriteLeft = new Image();
+        enemy2SpriteLeft.src = "enemy2left.png";
+
+        const enemy2SpriteRight = new Image();
+        enemy2SpriteRight.src = "enemy2right.png";
+
+        const enemy2DeathSprite = new Image();
+        enemy2DeathSprite.src = "enemy2death.png";
+
+        const enemy3SpriteUp = new Image();
+        enemy3SpriteUp.src = "enemy3up.png";
+
+        const enemy3SpriteDown = new Image();
+        enemy3SpriteDown.src = "enemy3down.png";
+
+        const enemy3SpriteLeft = new Image();
+        enemy3SpriteLeft.src = "enemy3left.png";
+
+        const enemy3SpriteRight = new Image();
+        enemy3SpriteRight.src = "enemy3right.png";
+
+        const enemy3DeathSprite = new Image();
+        enemy3DeathSprite.src = "enemy3death.png";
+
+        const pedestalSprite = new Image();
+        pedestalSprite.src = "pedestal.png";
+
+        const spoonphemusSprite = new Image();
+        spoonphemusSprite.src = "spoonphemus.png";
+
+        const shoopdawhoopSprite = new Image();
+        shoopdawhoopSprite.src = "shoopdawhoop.png";
+
+        const trinketSprite = new Image();
+        trinketSprite.src = "trinket.png";
+
+        let flashCanvas = document.createElement('canvas');
+        let flashCtx = flashCanvas.getContext('2d', { willReadFrequently: true });
+
+        function getRedTintedImage(img) {
+            if (!img || !img.complete || img.naturalWidth === 0) return img;
+            try {
+                if (flashCanvas.width !== img.naturalWidth || flashCanvas.height !== img.naturalHeight) {
+                    flashCanvas.width = img.naturalWidth;
+                    flashCanvas.height = img.naturalHeight;
+                }
+
+                flashCtx.clearRect(0, 0, flashCanvas.width, flashCanvas.height);
+                flashCtx.drawImage(img, 0, 0);
+
+                let imgData = flashCtx.getImageData(0, 0, flashCanvas.width, flashCanvas.height);
+                let data = imgData.data;
+
+                for (let i = 0; i < data.length; i += 4) {
+                    if (data[i + 3] > 0) {
+                        data[i]     = Math.min(255, data[i] + 120);     
+                        data[i + 1] = Math.floor(data[i + 1] * 0.4);    
+                        data[i + 2] = Math.floor(data[i + 2] * 0.4);    
+                    }
+                }
+
+                flashCtx.putImageData(imgData, 0, 0);
+                return flashCanvas;
+            } catch (e) {
+                return img;
+            }
+        }
+
+        function createEnemy(type, x, y, size, hp) {
+            let ambientInterval = (type === 3) 
+                ? 60 
+                : Math.floor(Math.random() * (180 - 60 + 1)) + 60;
+
+            return {
+                type: type,
+                x: x,
+                y: y,
+                size: size,
+                hp: hp,
+                maxHp: hp,
+                direction: "down",
+                hitFlashTimer: 0,
+                ambientTimer: 0,
+                nextAmbientInterval: ambientInterval
+            };
+        }
+
+        function spawnEnemiesForRoom(roomNum) {
+            enemies = [];
+            dyingEnemies = [];
+
+            if (clearedRooms[roomNum]) {
+                return;
+            }
+
+            if (roomNum === 2) {
+                enemies.push(createEnemy(1, canvas.width / 2 - 200, canvas.height / 2, 80, 25));
+                enemies.push(createEnemy(1, canvas.width / 2 + 200, canvas.height / 2, 80, 25));
+                enemies.push(createEnemy(1, canvas.width / 2, canvas.height / 2 - 100, 80, 25));
+                triggerRoomBanner("Evil mia!!! D:", "sfx-room2");
+            } else if (roomNum === 4) {
+                enemies.push(createEnemy(2, canvas.width / 2 - 200, canvas.height / 2, 80, 25));
+                enemies.push(createEnemy(2, canvas.width / 2 + 200, canvas.height / 2, 80, 25));
+                enemies.push(createEnemy(2, canvas.width / 2, canvas.height / 2 - 100, 80, 25));
+                triggerRoomBanner("Evil alpaca DD:::", "sfx-room4");
+            } else if (roomNum === 5) {
+                enemies.push(createEnemy(3, canvas.width / 2 - 200, canvas.height / 2, 80, 25));
+                enemies.push(createEnemy(3, canvas.width / 2 + 200, canvas.height / 2, 80, 25));
+                enemies.push(createEnemy(3, canvas.width / 2, canvas.height / 2 - 100, 80, 25));
+                triggerRoomBanner("EVIL PRAIRIE DOG OH NO :C", "sfx-room5");
+            }
+        }
+
+        function initGameSession() {
+            canvas = document.getElementById("gameCanvas");
+            ctx = canvas.getContext("2d");
+
+            currentRoom = 1;
+            transitionAnim = 0;
+            discoveredRooms = { 1: true, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false };
+            clearedRooms = { 1: true, 2: false, 3: false, 4: false, 5: false, 6: true, 7: true };
+
+            itemInRoom3 = { x: canvas.width / 2, y: canvas.height / 2, size: 53.3, collected: false };
+            itemInRoom7 = { x: canvas.width / 2, y: canvas.height / 2, size: 53.3, collected: false };
+            activeItemLaser.firing = false;
+            activeItemLaser.timer = 0;
+            
+            trinketInWorld = {
+                active: false,
+                x: 0,
+                y: 0,
+                size: 40,
+                collected: false
+            };
+
+            player = {
+                x: canvas.width / 2,
+                y: canvas.height / 2 + 180,
+                size: 55,
+                speed: 6,
+                direction: "down",
+                hp: 6,
+                hasHoming: false
+            };
+
+            tears = [];
+            enemies = [];
+            dyingEnemies = [];
+            confettiParticles = [];
+            itemBanner.active = false;
+            roomBanner.active = false;
+            keys = {};
+            shootCooldown = 0;
+            hitCooldown = 0;
+            gameRunning = false;
+            gamePausedForMenu = true;
+
+            let prankVid = document.getElementById("prank-video");
+            if (prankVid) { prankVid.pause(); prankVid.currentTime = 0; }
+
+            drawGame();
+
+            if (document.fullscreenElement || document.webkitFullscreenElement) {
+                document.getElementById("fullscreen-prompt-overlay").style.display = "none";
+                document.getElementById("start-screen-overlay").style.display = "flex";
+                playGameMusic();
+            } else {
+                document.getElementById("fullscreen-prompt-overlay").style.display = "flex";
+                document.getElementById("start-screen-overlay").style.display = "none";
+                // Ensure the background music keeps playing when visiting the game section un-fullscreened
+                playSiteBgMusic();
+            }
+        }
+
+        function triggerDeath() {
+            stopGameEngine();
+            playGameMusic();
+            stopAmbientMusic();
+            stopEnemyAmbientSounds();
+            
+            currentRoom = 1;
+            discoveredRooms = { 1: true, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false };
+            clearedRooms = { 1: true, 2: false, 3: false, 4: false, 5: false, 6: true, 7: true };
+            itemInRoom3.collected = false;
+            itemInRoom7.collected = false;
+            trinketInWorld.collected = false;
+            trinketInWorld.active = false;
+            activeItemLaser.firing = false;
+            activeItemLaser.timer = 0;
+            
+            enemies = [];
+            dyingEnemies = [];
+            tears = [];
+            confettiParticles = [];
+            itemBanner.active = false;
+            roomBanner.active = false;
+
+            let prankVid = document.getElementById("prank-video");
+            if (prankVid) { prankVid.pause(); prankVid.currentTime = 0; }
+
+            player.x = canvas.width / 2;
+            player.y = canvas.height / 2 + 180;
+            player.hp = 6;
+            player.hasHoming = false;
+            hitCooldown = 0;
+
+            document.getElementById("start-screen-overlay").style.display = "flex";
+            drawGame();
+        }
+
+        function startActualGame() {
+            document.getElementById("start-screen-overlay").style.display = "none";
+            stopGameMusic(); 
+            playAmbientMusic();
+            gameRunning = true;
+            gamePausedForMenu = false;
+
+            window.addEventListener('keydown', handleKeyDown);
+            window.addEventListener('keyup', handleKeyUp);
+
+            if (!gameInterval) {
+                gameInterval = setInterval(updateGame, 1000 / 60);
+            }
+        }
+
+        function stopGameEngine() {
+            gameRunning = false;
+            gamePausedForMenu = false;
+            if (gameInterval) {
+                clearInterval(gameInterval);
+                gameInterval = null;
+            }
+            window.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('keyup', handleKeyUp);
+        }
+
+        function handleKeyDown(e) {
+            if (!gameRunning) return;
+            keys[e.key.toLowerCase()] = true;
+            if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(e.key.toLowerCase())) {
+                e.preventDefault();
+            }
+            if (e.key === " " && !e.repeat) {
+                useActiveItem();
+            }
+        }
+
+        function useActiveItem() {
+            if (!gameRunning || gamePausedForMenu) return;
+            if (!itemInRoom7.collected) return;
+            if (activeItemLaser.firing) return;
+
+            activeItemLaser.firing = true;
+            activeItemLaser.timer = activeItemLaser.duration;
+            activeItemLaser.direction = player.direction;
+            playSfx('sfx-shoot', 0.7);
+        }
+
+        function handleKeyUp(e) {
+            if (!gameRunning) return;
+            keys[e.key.toLowerCase()] = false;
+        }
+
+        function drawDoor(ctx, x, y, radius, startAngle, endAngle, anticlockwise = false, isGold = false) {
+            ctx.save();
+            ctx.fillStyle = isGold ? "#ffcc00" : "#000000";
+            ctx.beginPath();
+            ctx.arc(x, y, radius, startAngle, endAngle, anticlockwise);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        // Applies damage to enemies[j], flashes it red, plays hit/death sfx,
+        // and handles death cleanup (trinket drop, dying-enemy animation).
+        // Shared by both tear collisions and the Shoopdawhoop laser beam.
+        function damageEnemyAtIndex(j, dmg, playHitSfx) {
+            let en = enemies[j];
+            if (!en) return;
+
+            en.hp -= dmg;
+            en.hitFlashTimer = 10;
+            if (playHitSfx) playSfx('sfx-enemy-hit');
+
+            if (en.hp <= 0) {
+                playSfx('sfx-enemy-death');
+
+                if (en.type === 3 && currentRoom === 5) {
+                    let otherPrairieDogs = enemies.filter((e, idx) => idx !== j && e.type === 3);
+                    if (otherPrairieDogs.length === 0) {
+                        trinketInWorld.active = true;
+                        trinketInWorld.x = en.x;
+                        trinketInWorld.y = en.y;
+                        trinketInWorld.collected = false;
+                    }
+                }
+
+                dyingEnemies.push({
+                    type: en.type,
+                    x: en.x,
+                    y: en.y,
+                    size: en.size,
+                    timer: 30
+                });
+                enemies.splice(j, 1);
+            }
+        }
+
+        // Draws the Shoopdawhoop laser: a thick white beam from the player to
+        // the wall in the locked firing direction, with a soft glow like
+        // Brimstone from The Binding of Isaac.
+        function drawShoopdawhoopBeam(ctx, player, laser, wallThickness) {
+            let x1 = player.x, y1 = player.y, x2 = player.x, y2 = player.y;
+
+            if (laser.direction === "up") y2 = wallThickness;
+            else if (laser.direction === "down") y2 = ctx.canvas.height - wallThickness;
+            else if (laser.direction === "left") x2 = wallThickness;
+            else if (laser.direction === "right") x2 = ctx.canvas.width - wallThickness;
+
+            ctx.save();
+
+            // Outer glow
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+            ctx.lineWidth = laser.beamWidth + 22;
+            ctx.lineCap = "round";
+            ctx.shadowColor = "#ffffff";
+            ctx.shadowBlur = 25;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+
+            // Mid glow
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.7)";
+            ctx.lineWidth = laser.beamWidth + 8;
+            ctx.shadowBlur = 15;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+
+            // Bright core
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = laser.beamWidth;
+            ctx.shadowBlur = 8;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        function updateGame() {
+            if (!gameRunning) return;
+
+            updateConfetti();
+            updateItemBanner(1000 / 60);
+            updateRoomBanner(1000 / 60);
+
+            if (enemies.length === 0) {
+                clearedRooms[currentRoom] = true;
+            }
+
+            if (transitionAnim > 0) {
+                transitionAnim -= 0.05;
+                if (transitionAnim < 0) transitionAnim = 0;
+                drawGame();
+                return;
+            }
+
+            let moveX = 0;
+            let moveY = 0;
+
+            if (keys['w'] || keys['W']) moveY -= 1;
+            if (keys['s'] || keys['S']) moveY += 1;
+            if (keys['a'] || keys['A']) moveX -= 1;
+            if (keys['d'] || keys['D']) moveX += 1;
+
+            if (moveX !== 0 && moveY !== 0) {
+                moveX *= 0.7071;
+                moveY *= 0.7071;
+            }
+
+            let wallThickness = 75;
+            let doorWidth = 140;
+            let doorX1 = canvas.width / 2 - doorWidth / 2;
+            let doorX2 = canvas.width / 2 + doorWidth / 2;
+
+            let sideDoorY1 = canvas.height / 2 - doorWidth / 2;
+            let sideDoorY2 = canvas.height / 2 + doorWidth / 2;
+
+            let nextX = player.x + moveX * player.speed;
+            let nextY = player.y + moveY * player.speed;
+
+            function canMoveTo(px, py, radius) {
+                let left = px - radius;
+                let right = px + radius;
+                let top = py - radius;
+                let bottom = py + radius;
+
+                let enemiesExist = (enemies.length > 0);
+
+                if (left < wallThickness) {
+                    let hasLeftDoor = ((currentRoom === 3 || currentRoom === 4) && !enemiesExist);
+                    let inDoorY = (py >= sideDoorY1 && py <= sideDoorY2);
+                    if (!hasLeftDoor || !inDoorY) return false;
+                }
+                if (right > canvas.width - wallThickness) {
+                    let hasRightDoor = ((currentRoom === 2 || currentRoom === 7) && !enemiesExist);
+                    let inDoorY = (py >= sideDoorY1 && py <= sideDoorY2);
+                    if (!hasRightDoor || !inDoorY) return false;
+                }
+                if (top < wallThickness) {
+                    let hasTopDoor = (currentRoom === 1 || currentRoom === 2 || currentRoom === 4 || currentRoom === 6) && !enemiesExist;
+                    let inDoorX = (px >= doorX1 && px <= doorX2);
+                    if (!hasTopDoor || !inDoorX) return false;
+                }
+                if (bottom > canvas.height - wallThickness) {
+                    let hasBottomDoor = (currentRoom === 1 || currentRoom === 2 || currentRoom === 4 || currentRoom === 5) && !enemiesExist;
+                    let inDoorX = (px >= doorX1 && px <= doorX2);
+                    if (!hasBottomDoor || !inDoorX) return false;
+                }
+                return true;
+            }
+
+            if (canMoveTo(nextX, player.y, player.size)) {
+                player.x = nextX;
+            }
+            if (canMoveTo(player.x, nextY, player.size)) {
+                player.y = nextY;
+            }
+
+            if (currentRoom === 3 && !itemInRoom3.collected) {
+                let distToItem = Math.hypot(player.x - itemInRoom3.x, player.y - itemInRoom3.y);
+                if (distToItem < player.size + itemInRoom3.size) {
+                    itemInRoom3.collected = true;
+                    player.hasHoming = true;
+                    playSfx('sfx-pickup', 0.9);
+
+                    triggerConfetti(itemInRoom3.x, itemInRoom3.y);
+                    triggerItemBanner("Spoonphemus", "x3 damage and homing tears! :D");
+                }
+            }
+
+            if (currentRoom === 7 && !itemInRoom7.collected) {
+                let distToItem = Math.hypot(player.x - itemInRoom7.x, player.y - itemInRoom7.y);
+                if (distToItem < player.size + itemInRoom7.size) {
+                    itemInRoom7.collected = true;
+                    playSfx('sfx-pickup', 0.9);
+
+                    triggerConfetti(itemInRoom7.x, itemInRoom7.y);
+                    triggerItemBanner("Shoopdawhoop", "Press SPACE to fire a laser!");
+                }
+            }
+
+            if (currentRoom === 5 && trinketInWorld.active && !trinketInWorld.collected) {
+                let distToTrinket = Math.hypot(player.x - trinketInWorld.x, player.y - trinketInWorld.y);
+                if (distToTrinket < player.size + trinketInWorld.size) {
+                    trinketInWorld.collected = true;
+                    trinketInWorld.active = false;
+                    player.hp = Math.min(10, player.hp + 4);
+                    playSfx('sfx-pickup', 0.9);
+
+                    triggerConfetti(trinketInWorld.x, trinketInWorld.y);
+                    triggerItemBanner("Heart of the Prairie Queen Bebilia", "+2 hp");
+                }
+            }
+
+            let roomChanged = false;
+            let targetRoomToSwitch = null;
+            let newPlayerX = player.x;
+            let newPlayerY = player.y;
+            let newSlideDir = 'up';
+
+            if (enemies.length === 0) {
+                if (currentRoom === 1) {
+                    if (player.x >= doorX1 && player.x <= doorX2 && player.y - player.size <= wallThickness + 5) {
+                        targetRoomToSwitch = 2;
+                        newSlideDir = 'up';
+                        newPlayerX = canvas.width / 2;
+                        newPlayerY = canvas.height - wallThickness - player.size - 15;
+                    } else if (player.x >= doorX1 && player.x <= doorX2 && player.y + player.size >= canvas.height - wallThickness - 5) {
+                        targetRoomToSwitch = 6;
+                        newSlideDir = 'down';
+                        newPlayerX = canvas.width / 2;
+                        newPlayerY = wallThickness + player.size + 15;
+                    }
+                } else if (currentRoom === 2) {
+                    if (player.x >= doorX1 && player.x <= doorX2 && player.y + player.size >= canvas.height - wallThickness - 5) {
+                        targetRoomToSwitch = 1;
+                        newSlideDir = 'down';
+                        newPlayerX = canvas.width / 2;
+                        newPlayerY = wallThickness + player.size + 15;
+                    } else if (player.x >= doorX1 && player.x <= doorX2 && player.y - player.size <= wallThickness + 5) {
+                        targetRoomToSwitch = 4;
+                        newSlideDir = 'up';
+                        newPlayerX = canvas.width / 2;
+                        newPlayerY = canvas.height - wallThickness - player.size - 15;
+                    } else if (player.y >= sideDoorY1 && player.y <= sideDoorY2 && player.x + player.size >= canvas.width - wallThickness - 5) {
+                        targetRoomToSwitch = 3;
+                        newSlideDir = 'right';
+                        newPlayerX = wallThickness + player.size + 15;
+                        newPlayerY = canvas.height / 2;
+                    }
+                } else if (currentRoom === 3) {
+                    if (player.y >= sideDoorY1 && player.y <= sideDoorY2 && player.x - player.size <= wallThickness + 5) {
+                        targetRoomToSwitch = 2;
+                        newSlideDir = 'left';
+                        newPlayerX = canvas.width - wallThickness - player.size - 15;
+                        newPlayerY = canvas.height / 2;
+                    }
+                } else if (currentRoom === 4) {
+                    if (player.x >= doorX1 && player.x <= doorX2 && player.y + player.size >= canvas.height - wallThickness - 5) {
+                        targetRoomToSwitch = 2;
+                        newSlideDir = 'down';
+                        newPlayerX = canvas.width / 2;
+                        newPlayerY = wallThickness + player.size + 15;
+                    } else if (player.x >= doorX1 && player.x <= doorX2 && player.y - player.size <= wallThickness + 5) {
+                        targetRoomToSwitch = 5;
+                        newSlideDir = 'up';
+                        newPlayerX = canvas.width / 2;
+                        newPlayerY = canvas.height - wallThickness - player.size - 15;
+                    } else if (player.y >= sideDoorY1 && player.y <= sideDoorY2 && player.x - player.size <= wallThickness + 5) {
+                        targetRoomToSwitch = 7;
+                        newSlideDir = 'left';
+                        newPlayerX = canvas.width - wallThickness - player.size - 15;
+                        newPlayerY = canvas.height / 2;
+                    }
+                } else if (currentRoom === 5) {
+                    if (player.x >= doorX1 && player.x <= doorX2 && player.y + player.size >= canvas.height - wallThickness - 5) {
+                        targetRoomToSwitch = 4;
+                        newSlideDir = 'down';
+                        newPlayerX = canvas.width / 2;
+                        newPlayerY = wallThickness + player.size + 15;
+                    }
+                } else if (currentRoom === 6) {
+                    if (player.x >= doorX1 && player.x <= doorX2 && player.y - player.size <= wallThickness + 5) {
+                        targetRoomToSwitch = 1;
+                        newSlideDir = 'up';
+                        newPlayerX = canvas.width / 2;
+                        newPlayerY = canvas.height - wallThickness - player.size - 15;
+                    }
+                } else if (currentRoom === 7) {
+                    if (player.y >= sideDoorY1 && player.y <= sideDoorY2 && player.x + player.size >= canvas.width - wallThickness - 5) {
+                        targetRoomToSwitch = 4;
+                        newSlideDir = 'right';
+                        newPlayerX = wallThickness + player.size + 15;
+                        newPlayerY = canvas.height / 2;
+                    }
+                }
+            }
+
+            if (targetRoomToSwitch !== null) {
+                stopEnemyAmbientSounds(); 
+                tears = []; 
+                currentRoom = targetRoomToSwitch;
+                discoveredRooms[currentRoom] = true;
+                transitionAnim = 1.0; 
+                slideDirection = newSlideDir;
+                player.x = newPlayerX;
+                player.y = newPlayerY;
+                roomChanged = true;
+            }
+
+            let prankVid = document.getElementById("prank-video");
+            if (currentRoom === 6) {
+                if (roomChanged) {
+                    playSfx('sfx-prank-enter', 1.0);
+                }
+                if (prankVid) {
+                    prankVid.volume = 1.0; 
+                    if (prankVid.paused) {
+                        prankVid.play().catch(e => {});
+                    }
+                }
+            } else {
+                if (prankVid && !prankVid.paused) {
+                    prankVid.pause();
+                }
+            }
+
+            if (roomChanged) {
+                spawnEnemiesForRoom(currentRoom);
+            }
+
+            if (shootCooldown > 0) shootCooldown--;
+            if (hitCooldown > 0) hitCooldown--;
+
+            let shootSpeed = 10;
+            let isShooting = false;
+            let tearDmg = player.hasHoming ? 15 : 5;
+            let tearRad = player.hasHoming ? 40 : 20;
+
+            if (keys['arrowup']) {
+                if (shootCooldown === 0) {
+                    tears.push({x: player.x, y: player.y - player.size, vx: 0, vy: -shootSpeed, damage: tearDmg, radius: tearRad, isHoming: player.hasHoming});
+                    shootCooldown = 28;
+                    playSfx('sfx-shoot', 0.4);
+                }
+                player.direction = "up";
+                isShooting = true;
+            } else if (keys['arrowdown']) {
+                if (shootCooldown === 0) {
+                    tears.push({x: player.x, y: player.y + player.size, vx: 0, vy: shootSpeed, damage: tearDmg, radius: tearRad, isHoming: player.hasHoming});
+                    shootCooldown = 28;
+                    playSfx('sfx-shoot', 0.4);
+                }
+                player.direction = "down";
+                isShooting = true;
+            } else if (keys['arrowleft']) {
+                if (shootCooldown === 0) {
+                    tears.push({x: player.x - player.size, y: player.y, vx: -shootSpeed, vy: 0, damage: tearDmg, radius: tearRad, isHoming: player.hasHoming});
+                    shootCooldown = 28;
+                    playSfx('sfx-shoot', 0.4);
+                }
+                player.direction = "left";
+                isShooting = true;
+            } else if (keys['arrowright']) {
+                if (shootCooldown === 0) {
+                    tears.push({x: player.x + player.size, y: player.y, vx: shootSpeed, vy: 0, damage: tearDmg, radius: tearRad, isHoming: player.hasHoming});
+                    shootCooldown = 28;
+                    playSfx('sfx-shoot', 0.4);
+                }
+                player.direction = "right";
+                isShooting = true;
+            }
+
+            if (!isShooting) {
+                if (moveY > 0) player.direction = "down";
+                else if (moveY < 0) player.direction = "up";
+                else if (moveX < 0) player.direction = "left";
+                else if (moveX > 0) player.direction = "right";
+            }
+
+            for (let i = tears.length - 1; i >= 0; i--) {
+                let t = tears[i];
+
+                if (t.isHoming && enemies.length > 0) {
+                    let nearest = null;
+                    let minDist = Infinity;
+                    for (let en of enemies) {
+                        let d = Math.hypot(en.x - t.x, en.y - t.y);
+                        if (d < minDist) {
+                            minDist = d;
+                            nearest = en;
+                        }
+                    }
+                    if (nearest) {
+                        let dx = nearest.x - t.x;
+                        let dy = nearest.y - t.y;
+                        let dist = Math.hypot(dx, dy);
+                        if (dist > 0) {
+                            let speed = Math.hypot(t.vx, t.vy) || shootSpeed;
+                            t.vx += (dx / dist) * 1.3;
+                            t.vy += (dy / dist) * 1.3;
+                            let newSpeed = Math.hypot(t.vx, t.vy);
+                            t.vx = (t.vx / newSpeed) * speed;
+                            t.vy = (t.vy / newSpeed) * speed;
+                        }
+                    }
+                }
+
+                t.x += t.vx;
+                t.y += t.vy;
+
+                let tearHit = false;
+
+                let r = t.radius;
+                if (
+                    t.x - r <= wallThickness || 
+                    t.x + r >= canvas.width - wallThickness || 
+                    t.y - r <= wallThickness || 
+                    t.y + r >= canvas.height - wallThickness
+                ) {
+                    tearHit = true;
+                }
+
+                if (!tearHit) {
+                    for (let j = enemies.length - 1; j >= 0; j--) {
+                        let en = enemies[j];
+                        let dist = Math.hypot(t.x - en.x, t.y - en.y);
+                        if (dist < t.radius + en.size) {
+                            tearHit = true;
+                            damageEnemyAtIndex(j, t.damage, true);
+                            break;
+                        }
+                    }
+                }
+
+                if (tearHit) {
+                    tears.splice(i, 1);
+                }
+            }
+
+            // ==========================================
+            // ACTIVE ITEM: Shoopdawhoop laser beam
+            // ==========================================
+            if (activeItemLaser.firing) {
+                activeItemLaser.timer--;
+                if (activeItemLaser.timer <= 0) {
+                    activeItemLaser.firing = false;
+                } else {
+                    let dmgThisFrame = activeItemLaser.totalDamage / activeItemLaser.duration;
+                    let dir = activeItemLaser.direction;
+                    let halfBeam = activeItemLaser.beamWidth / 2;
+
+                    for (let j = enemies.length - 1; j >= 0; j--) {
+                        let en = enemies[j];
+                        let inBeam = false;
+
+                        if (dir === "up" || dir === "down") {
+                            if (Math.abs(en.x - player.x) <= halfBeam + en.size) {
+                                if (dir === "up" && en.y <= player.y) inBeam = true;
+                                if (dir === "down" && en.y >= player.y) inBeam = true;
+                            }
+                        } else {
+                            if (Math.abs(en.y - player.y) <= halfBeam + en.size) {
+                                if (dir === "left" && en.x <= player.x) inBeam = true;
+                                if (dir === "right" && en.x >= player.x) inBeam = true;
+                            }
+                        }
+
+                        if (inBeam) {
+                            damageEnemyAtIndex(j, dmgThisFrame, false);
+                        }
+                    }
+                }
+            }
+
+            for (let d = dyingEnemies.length - 1; d >= 0; d--) {
+                dyingEnemies[d].timer--;
+                if (dyingEnemies[d].timer <= 0) dyingEnemies.splice(d, 1);
+            }
+
+            let enemySpeed = player.speed / 2;
+            for (let en of enemies) {
+                if (en.hitFlashTimer > 0) en.hitFlashTimer--;
+
+                en.ambientTimer++;
+                if (en.ambientTimer >= en.nextAmbientInterval) {
+                    let ambientSfxId = 'sfx-enemy-ambient';
+                    if (en.type === 2) ambientSfxId = 'sfx-enemy2-ambient';
+                    else if (en.type === 3) ambientSfxId = 'sfx-enemy3-ambient';
+                    
+                    playSfx(ambientSfxId, 0.6);
+                    en.ambientTimer = 0;
+                    en.nextAmbientInterval = (en.type === 3) 
+                        ? 60 
+                        : Math.floor(Math.random() * (180 - 60 + 1)) + 60;
+                }
+
+                let dx = player.x - en.x;
+                let dy = player.y - en.y;
+                let dist = Math.hypot(dx, dy);
+                if (dist > 1) {
+                    en.x += (dx / dist) * enemySpeed;
+                    en.y += (dy / dist) * enemySpeed;
+                }
+
+                if (Math.abs(dx) > Math.abs(dy)) en.direction = dx > 0 ? "right" : "left";
+                else en.direction = dy > 0 ? "down" : "up";
+
+                if (hitCooldown === 0) {
+                    let pDist = Math.hypot(player.x - en.x, player.y - en.y);
+                    if (pDist < player.size + en.size - 25) {
+                        player.hp -= 1; 
+                        hitCooldown = 60; 
+                        playSfx('sfx-hit');
+                        if (player.hp <= 0) {
+                            player.hp = 0;
+                            triggerDeath();
+                            return;
+                        }
+                    }
+                }
+            }
+
+            for (let i = 0; i < enemies.length; i++) {
+                for (let j = i + 1; j < enemies.length; j++) {
+                    let e1 = enemies[i];
+                    let e2 = enemies[j];
+                    let edx = e2.x - e1.x;
+                    let edy = e2.y - e1.y;
+                    let edist = Math.hypot(edx, edy);
+                    let minDist = e1.size + e2.size;
+
+                    if (edist < minDist && edist > 0) {
+                        let overlap = minDist - edist;
+                        let angle = Math.atan2(edy, edx);
+                        e1.x -= Math.cos(angle) * (overlap / 2);
+                        e1.y -= Math.sin(angle) * (overlap / 2);
+                        e2.x += Math.cos(angle) * (overlap / 2);
+                        e2.y += Math.sin(angle) * (overlap / 2);
+                    }
+                }
+            }
+
+            drawGame();
+        }
+
+        function drawGame() {
+            if (!ctx) return;
+            ctx.save();
+
+            let prankVid = document.getElementById("prank-video");
+
+            if (transitionAnim > 0) {
+                let slideOffsetVal = transitionAnim;
+                if (slideDirection === 'up') ctx.translate(0, slideOffsetVal * canvas.height);
+                else if (slideDirection === 'down') ctx.translate(0, -slideOffsetVal * canvas.height);
+                else if (slideDirection === 'right') ctx.translate(-slideOffsetVal * canvas.width, 0);
+                else if (slideDirection === 'left') ctx.translate(slideOffsetVal * canvas.width, 0);
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (currentRoom === 6) {
+                if (prankVid && prankVid.readyState >= 2) {
+                    ctx.drawImage(prankVid, 0, 0, canvas.width, canvas.height);
+                } else {
+                    ctx.fillStyle = "#000000";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+            } else {
+                if (floorSprite.complete && floorSprite.naturalWidth !== 0) {
+                    ctx.drawImage(floorSprite, 0, 0, canvas.width, canvas.height);
+                } else {
+                    ctx.fillStyle = "#ffe6eb";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+
+            let wallThickness = 75;
+            let doorWidth = 140;
+            let doorX = canvas.width / 2 - doorWidth / 2;
+            let doorCenterX = canvas.width / 2;
+
+            let sideDoorY = canvas.height / 2 - doorWidth / 2;
+            let sideDoorCenterY = canvas.height / 2;
+
+            ctx.fillStyle = (currentRoom === 6) ? "#000000" : "#5a3d28";
+
+            if (currentRoom === 1) {
+                ctx.beginPath();
+                ctx.moveTo(0, 0); ctx.lineTo(canvas.width, 0); ctx.lineTo(canvas.width, canvas.height); ctx.lineTo(0, canvas.height);
+                ctx.closePath();
+                ctx.moveTo(wallThickness, wallThickness); ctx.lineTo(doorX, wallThickness);
+                ctx.arc(doorCenterX, wallThickness, doorWidth / 2, Math.PI, 0, false);
+                ctx.lineTo(canvas.width - wallThickness, wallThickness);
+                ctx.lineTo(canvas.width - wallThickness, canvas.height - wallThickness);
+                ctx.lineTo(doorX + doorWidth, canvas.height - wallThickness);
+                ctx.arc(doorCenterX, canvas.height - wallThickness, doorWidth / 2, 0, Math.PI, false);
+                ctx.lineTo(wallThickness, canvas.height - wallThickness);
+                ctx.closePath();
+                ctx.fill('evenodd');
+
+                ctx.save(); ctx.beginPath(); ctx.arc(doorCenterX, wallThickness, doorWidth / 2, Math.PI, 0, false); ctx.closePath(); ctx.clip();
+                if (floorSprite.complete && floorSprite.naturalWidth !== 0) ctx.drawImage(floorSprite, 0, 0, canvas.width, canvas.height);
+                else { ctx.fillStyle = "#ffe6eb"; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+                ctx.restore();
+
+                ctx.save(); ctx.beginPath(); ctx.arc(doorCenterX, canvas.height - wallThickness, doorWidth / 2, 0, Math.PI, false); ctx.closePath(); ctx.clip();
+                if (floorSprite.complete && floorSprite.naturalWidth !== 0) ctx.drawImage(floorSprite, 0, 0, canvas.width, canvas.height);
+                else { ctx.fillStyle = "#ffe6eb"; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+                ctx.restore();
+
+                drawDoor(ctx, doorCenterX, wallThickness, doorWidth / 2, Math.PI, 0, false, false);
+
+                ctx.save();
+                ctx.fillStyle = "#000000";
+                ctx.beginPath();
+                ctx.arc(doorCenterX, canvas.height - wallThickness, doorWidth / 2, 0, Math.PI, false);
+                ctx.fill();
+                ctx.strokeStyle = "#8b0000";
+                ctx.lineWidth = 4;
+                ctx.stroke();
+
+                if (skullSprite.complete && skullSprite.naturalWidth !== 0) {
+                    let skullSize = 50;
+                    ctx.drawImage(skullSprite, doorCenterX - skullSize / 2, canvas.height - wallThickness - doorWidth / 4 - skullSize / 2, skullSize, skullSize);
+                }
+                ctx.restore();
+
+            } else if (currentRoom === 2) {
+                ctx.beginPath();
+                ctx.moveTo(0, 0); ctx.lineTo(canvas.width, 0); ctx.lineTo(canvas.width, canvas.height); ctx.lineTo(0, canvas.height);
+                ctx.closePath();
+                ctx.moveTo(wallThickness, wallThickness); ctx.lineTo(doorX, wallThickness);
+                ctx.arc(doorCenterX, wallThickness, doorWidth / 2, Math.PI, 0, false);
+                ctx.lineTo(canvas.width - wallThickness, wallThickness);
+                ctx.lineTo(canvas.width - wallThickness, sideDoorY);
+                ctx.arc(canvas.width - wallThickness, sideDoorCenterY, doorWidth / 2, -Math.PI / 2, Math.PI / 2, false);
+                ctx.lineTo(canvas.width - wallThickness, canvas.height - wallThickness);
+                ctx.lineTo(doorX + doorWidth, canvas.height - wallThickness);
+                ctx.arc(doorCenterX, canvas.height - wallThickness, doorWidth / 2, 0, Math.PI, false);
+                ctx.lineTo(wallThickness, canvas.height - wallThickness);
+                ctx.closePath();
+                ctx.fill('evenodd');
+
+                ctx.save(); ctx.beginPath(); ctx.arc(doorCenterX, wallThickness, doorWidth / 2, Math.PI, 0, false); ctx.closePath(); ctx.clip();
+                if (floorSprite.complete && floorSprite.naturalWidth !== 0) ctx.drawImage(floorSprite, 0, 0, canvas.width, canvas.height);
+                else { ctx.fillStyle = "#ffe6eb"; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+                ctx.restore();
+
+                ctx.save(); ctx.beginPath(); ctx.arc(doorCenterX, canvas.height - wallThickness, doorWidth / 2, 0, Math.PI, false); ctx.closePath(); ctx.clip();
+                if (floorSprite.complete && floorSprite.naturalWidth !== 0) ctx.drawImage(floorSprite, 0, 0, canvas.width, canvas.height);
+                else { ctx.fillStyle = "#ffe6eb"; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+                ctx.restore();
+
+                ctx.save(); ctx.beginPath(); ctx.arc(canvas.width - wallThickness, sideDoorCenterY, doorWidth / 2, -Math.PI / 2, Math.PI / 2, false); ctx.closePath(); ctx.clip();
+                if (floorSprite.complete && floorSprite.naturalWidth !== 0) ctx.drawImage(floorSprite, 0, 0, canvas.width, canvas.height);
+                else { ctx.fillStyle = "#ffe6eb"; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+                ctx.restore();
+
+                drawDoor(ctx, doorCenterX, wallThickness, doorWidth / 2, Math.PI, 0, false, false);
+                drawDoor(ctx, doorCenterX, canvas.height - wallThickness, doorWidth / 2, 0, Math.PI, false, false);
+                drawDoor(ctx, canvas.width - wallThickness, sideDoorCenterY, doorWidth / 2, -Math.PI / 2, Math.PI / 2, false, true);
+
+            } else if (currentRoom === 3) {
+                ctx.beginPath();
+                ctx.moveTo(0, 0); ctx.lineTo(canvas.width, 0); ctx.lineTo(canvas.width, canvas.height); ctx.lineTo(0, canvas.height);
+                ctx.closePath();
+                ctx.moveTo(wallThickness, wallThickness); ctx.lineTo(canvas.width - wallThickness, wallThickness);
+                ctx.lineTo(canvas.width - wallThickness, canvas.height - wallThickness);
+                ctx.lineTo(wallThickness, canvas.height - wallThickness);
+                ctx.lineTo(wallThickness, sideDoorY + doorWidth);
+                ctx.arc(wallThickness, sideDoorCenterY, doorWidth / 2, Math.PI / 2, 3 * Math.PI / 2, false);
+                ctx.lineTo(wallThickness, wallThickness);
+                ctx.closePath();
+                ctx.fill('evenodd');
+
+                ctx.save(); ctx.beginPath(); ctx.arc(wallThickness, sideDoorCenterY, doorWidth / 2, Math.PI / 2, 3 * Math.PI / 2, false); ctx.closePath(); ctx.clip();
+                if (floorSprite.complete && floorSprite.naturalWidth !== 0) ctx.drawImage(floorSprite, 0, 0, canvas.width, canvas.height);
+                else { ctx.fillStyle = "#ffe6eb"; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+                ctx.restore();
+
+                drawDoor(ctx, wallThickness, sideDoorCenterY, doorWidth / 2, Math.PI / 2, 3 * Math.PI / 2, false, true);
+
+            } else if (currentRoom === 4) {
+                ctx.beginPath();
+                ctx.moveTo(0, 0); ctx.lineTo(canvas.width, 0); ctx.lineTo(canvas.width, canvas.height); ctx.lineTo(0, canvas.height);
+                ctx.closePath();
+                ctx.moveTo(wallThickness, wallThickness); ctx.lineTo(doorX, wallThickness);
+                ctx.arc(doorCenterX, wallThickness, doorWidth / 2, Math.PI, 0, false);
+                ctx.lineTo(canvas.width - wallThickness, wallThickness);
+                ctx.lineTo(canvas.width - wallThickness, canvas.height - wallThickness);
+                ctx.lineTo(doorX + doorWidth, canvas.height - wallThickness);
+                ctx.arc(doorCenterX, canvas.height - wallThickness, doorWidth / 2, 0, Math.PI, false);
+                ctx.lineTo(wallThickness, canvas.height - wallThickness);
+                ctx.lineTo(wallThickness, sideDoorY + doorWidth);
+                ctx.arc(wallThickness, sideDoorCenterY, doorWidth / 2, Math.PI / 2, 3 * Math.PI / 2, false);
+                ctx.lineTo(wallThickness, wallThickness);
+                ctx.closePath();
+                ctx.fill('evenodd');
+
+                ctx.save(); ctx.beginPath(); ctx.arc(doorCenterX, wallThickness, doorWidth / 2, Math.PI, 0, false); ctx.closePath(); ctx.clip();
+                if (floorSprite.complete && floorSprite.naturalWidth !== 0) ctx.drawImage(floorSprite, 0, 0, canvas.width, canvas.height);
+                else { ctx.fillStyle = "#ffe6eb"; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+                ctx.restore();
+
+                ctx.save(); ctx.beginPath(); ctx.arc(doorCenterX, canvas.height - wallThickness, doorWidth / 2, 0, Math.PI, false); ctx.closePath(); ctx.clip();
+                if (floorSprite.complete && floorSprite.naturalWidth !== 0) ctx.drawImage(floorSprite, 0, 0, canvas.width, canvas.height);
+                else { ctx.fillStyle = "#ffe6eb"; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+                ctx.restore();
+
+                ctx.save(); ctx.beginPath(); ctx.arc(wallThickness, sideDoorCenterY, doorWidth / 2, Math.PI / 2, 3 * Math.PI / 2, false); ctx.closePath(); ctx.clip();
+                if (floorSprite.complete && floorSprite.naturalWidth !== 0) ctx.drawImage(floorSprite, 0, 0, canvas.width, canvas.height);
+                else { ctx.fillStyle = "#ffe6eb"; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+                ctx.restore();
+
+                drawDoor(ctx, doorCenterX, wallThickness, doorWidth / 2, Math.PI, 0, false, false);
+                drawDoor(ctx, doorCenterX, canvas.height - wallThickness, doorWidth / 2, 0, Math.PI, false, false);
+                drawDoor(ctx, wallThickness, sideDoorCenterY, doorWidth / 2, Math.PI / 2, 3 * Math.PI / 2, false, true);
+
+            } else if (currentRoom === 5) {
+                ctx.beginPath();
+                ctx.moveTo(0, 0); ctx.lineTo(canvas.width, 0); ctx.lineTo(canvas.width, canvas.height); ctx.lineTo(0, canvas.height);
+                ctx.closePath();
+                ctx.moveTo(wallThickness, wallThickness); ctx.lineTo(canvas.width - wallThickness, wallThickness);
+                ctx.lineTo(canvas.width - wallThickness, canvas.height - wallThickness);
+                ctx.lineTo(doorX + doorWidth, canvas.height - wallThickness);
+                ctx.arc(doorCenterX, canvas.height - wallThickness, doorWidth / 2, 0, Math.PI, false);
+                ctx.lineTo(wallThickness, canvas.height - wallThickness);
+                ctx.closePath();
+                ctx.fill('evenodd');
+
+                ctx.save(); ctx.beginPath(); ctx.arc(doorCenterX, canvas.height - wallThickness, doorWidth / 2, 0, Math.PI, false); ctx.closePath(); ctx.clip();
+                if (floorSprite.complete && floorSprite.naturalWidth !== 0) ctx.drawImage(floorSprite, 0, 0, canvas.width, canvas.height);
+                else { ctx.fillStyle = "#ffe6eb"; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+                ctx.restore();
+
+                drawDoor(ctx, doorCenterX, canvas.height - wallThickness, doorWidth / 2, 0, Math.PI, false, false);
+
+            } else if (currentRoom === 6) {
+                ctx.beginPath();
+                ctx.moveTo(0, 0); ctx.lineTo(canvas.width, 0); ctx.lineTo(canvas.width, canvas.height); ctx.lineTo(0, canvas.height);
+                ctx.closePath();
+                ctx.moveTo(wallThickness, wallThickness); ctx.lineTo(doorX, wallThickness);
+                ctx.arc(doorCenterX, wallThickness, doorWidth / 2, Math.PI, 0, false);
+                ctx.lineTo(canvas.width - wallThickness, wallThickness);
+                ctx.lineTo(canvas.width - wallThickness, canvas.height - wallThickness);
+                ctx.lineTo(wallThickness, canvas.height - wallThickness);
+                ctx.closePath();
+                ctx.fill('evenodd');
+
+                ctx.save(); ctx.beginPath(); ctx.arc(doorCenterX, wallThickness, doorWidth / 2, Math.PI, 0, false); ctx.closePath(); ctx.clip();
+                if (prankVid && prankVid.readyState >= 2) ctx.drawImage(prankVid, 0, 0, canvas.width, canvas.height);
+                else { ctx.fillStyle = "#000000"; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+                ctx.restore();
+
+                ctx.save();
+                ctx.fillStyle = "#000000";
+                ctx.beginPath();
+                ctx.arc(doorCenterX, wallThickness, doorWidth / 2, Math.PI, 0, false);
+                ctx.fill();
+                ctx.strokeStyle = "#ff0000";
+                ctx.lineWidth = 4;
+                ctx.stroke();
+                ctx.restore();
+
+            } else if (currentRoom === 7) {
+                ctx.beginPath();
+                ctx.moveTo(0, 0); ctx.lineTo(canvas.width, 0); ctx.lineTo(canvas.width, canvas.height); ctx.lineTo(0, canvas.height);
+                ctx.closePath();
+                ctx.moveTo(wallThickness, wallThickness); 
+                ctx.lineTo(canvas.width - wallThickness, wallThickness);
+                ctx.lineTo(canvas.width - wallThickness, sideDoorY);
+                ctx.arc(canvas.width - wallThickness, sideDoorCenterY, doorWidth / 2, -Math.PI / 2, Math.PI / 2, false);
+                ctx.lineTo(canvas.width - wallThickness, canvas.height - wallThickness);
+                ctx.lineTo(wallThickness, canvas.height - wallThickness);
+                ctx.lineTo(wallThickness, wallThickness);
+                ctx.closePath();
+                ctx.fill('evenodd');
+
+                ctx.save(); ctx.beginPath(); ctx.arc(canvas.width - wallThickness, sideDoorCenterY, doorWidth / 2, -Math.PI / 2, Math.PI / 2, false); ctx.closePath(); ctx.clip();
+                if (floorSprite.complete && floorSprite.naturalWidth !== 0) ctx.drawImage(floorSprite, 0, 0, canvas.width, canvas.height);
+                else { ctx.fillStyle = "#ffe6eb"; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+                ctx.restore();
+
+                drawDoor(ctx, canvas.width - wallThickness, sideDoorCenterY, doorWidth / 2, -Math.PI / 2, Math.PI / 2, false, true);
+            }
+
+            if (currentRoom === 1) {
+                let centerY = canvas.height / 2 - 20;
+                let imgWidth = 260;
+                let imgHeight = 260;
+                let spacing = 280;
+                let centerX = canvas.width / 2;
+
+                let x1 = centerX - spacing * 1.5; let x2 = centerX - spacing * 0.5;
+                let x3 = centerX + spacing * 0.5; let x4 = centerX + spacing * 1.5;
+
+                function drawControlTile(img, x, y, label) {
+                    if (img.complete && img.naturalWidth !== 0) {
+                        ctx.drawImage(img, x - imgWidth / 2, y - imgHeight / 2, imgWidth, imgHeight);
+                    } else {
+                        ctx.fillStyle = "rgba(0,0,0,0.4)"; ctx.fillRect(x - imgWidth / 2, y - imgHeight / 2, imgWidth, imgHeight);
+                        ctx.fillStyle = "white"; ctx.font = "bold 20px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(label, x, y);
+                    }
+                }
+
+                drawControlTile(controlImg1, x1, centerY, "1"); drawControlTile(controlImg2, x2, centerY, "2");
+                drawControlTile(controlImg3, x3, centerY, "3"); drawControlTile(controlImg4, x4, centerY, "4");
+            }
+
+            if (currentRoom === 3 || currentRoom === 7) {
+                let targetItem = (currentRoom === 3) ? itemInRoom3 : itemInRoom7;
+
+                ctx.fillStyle = "rgba(0,0,0,0.3)";
+                ctx.beginPath();
+                ctx.ellipse(targetItem.x, targetItem.y + 40, 60, 24, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                if (pedestalSprite.complete && pedestalSprite.naturalWidth !== 0) {
+                    ctx.drawImage(pedestalSprite, targetItem.x - 80, targetItem.y - 40, 160, 160);
+                } else {
+                    ctx.fillStyle = "#888888";
+                    ctx.fillRect(targetItem.x - 40, targetItem.y + 20, 80, 48);
+                    ctx.fillStyle = "#aaaaaa";
+                    ctx.fillRect(targetItem.x - 50, targetItem.y + 10, 100, 16);
+                }
+
+                if (!targetItem.collected) {
+                    let floatOffset = Math.sin(Date.now() / 250) * 12;
+                    let floatY = targetItem.y - 30 + floatOffset;
+
+                    if (currentRoom === 7) {
+                        if (shoopdawhoopSprite.complete && shoopdawhoopSprite.naturalWidth !== 0) {
+                            ctx.drawImage(shoopdawhoopSprite, targetItem.x - 40, floatY - 40, 80, 80);
+                        } else {
+                            ctx.fillStyle = "#ffffff";
+                            ctx.fillRect(targetItem.x - 30, floatY - 30, 60, 60);
+                            ctx.strokeStyle = "#000000";
+                            ctx.lineWidth = 2;
+                            ctx.strokeRect(targetItem.x - 30, floatY - 30, 60, 60);
+                        }
+                    } else {
+                        if (spoonphemusSprite.complete && spoonphemusSprite.naturalWidth !== 0) {
+                            ctx.drawImage(spoonphemusSprite, targetItem.x - 60, floatY - 60, 120, 120);
+                        } else {
+                            let grad = ctx.createRadialGradient(targetItem.x, floatY, 8, targetItem.x, floatY, 64);
+                            grad.addColorStop(0, "rgba(218, 112, 214, 0.9)");
+                            grad.addColorStop(1, "rgba(218, 112, 214, 0)");
+                            ctx.fillStyle = grad;
+                            ctx.beginPath();
+                            ctx.arc(targetItem.x, floatY, 64, 0, Math.PI * 2);
+                            ctx.fill();
+
+                            ctx.fillStyle = "#da70d6";
+                            ctx.beginPath();
+                            ctx.arc(targetItem.x, floatY, 30, 0, Math.PI * 2);
+                            ctx.fill();
+                            ctx.fillStyle = "#ffffff";
+                            ctx.beginPath();
+                            ctx.arc(targetItem.x - 8, floatY - 8, 8, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    }
+                }
+            }
+
+            if (currentRoom === 5 && trinketInWorld.active && !trinketInWorld.collected) {
+                if (trinketSprite.complete && trinketSprite.naturalWidth !== 0) {
+                    ctx.drawImage(trinketSprite, trinketInWorld.x - 30, trinketInWorld.y - 30, 60, 60);
+                } else {
+                    ctx.fillStyle = "#ff4d6d";
+                    ctx.beginPath();
+                    ctx.arc(trinketInWorld.x, trinketInWorld.y, 25, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            let currentSprite = spriteDown;
+            if (player && player.direction === "up") currentSprite = spriteUp;
+            if (player && player.direction === "left") currentSprite = spriteLeft;
+            if (player && player.direction === "right") currentSprite = spriteRight;
+
+            if (player) {
+                if (hitCooldown % 10 < 5) { 
+                    if (currentSprite.complete && currentSprite.naturalWidth !== 0) {
+                        ctx.drawImage(
+                            currentSprite,
+                            player.x - player.size, player.y - player.size,
+                            player.size * 2, player.size * 2
+                        );
+                    } else {
+                        ctx.fillStyle = "#ff4d6d"; ctx.beginPath(); ctx.arc(player.x, player.y, player.size, 0, Math.PI * 2); ctx.fill();
+                    }
+                }
+
+                if (activeItemLaser.firing) {
+                    drawShoopdawhoopBeam(ctx, player, activeItemLaser, wallThickness);
+                }
+            }
+
+            for (let d of dyingEnemies) {
+                let deathSpriteToUse = enemyDeathSprite;
+                if (d.type === 2) deathSpriteToUse = enemy2DeathSprite;
+                else if (d.type === 3) deathSpriteToUse = enemy3DeathSprite;
+
+                if (deathSpriteToUse.complete && deathSpriteToUse.naturalWidth !== 0) {
+                    ctx.drawImage(deathSpriteToUse, d.x - d.size, d.y - d.size, d.size * 2, d.size * 2);
+                } else {
+                    ctx.fillStyle = "#ff0000"; ctx.beginPath(); ctx.arc(d.x, d.y, d.size, 0, Math.PI * 2); ctx.fill();
+                }
+            }
+
+            for (let en of enemies) {
+    let enSprite;
+    if (en.type === 3) {
+        enSprite = enemy3SpriteDown;
+        if (en.direction === "up") enSprite = enemy3SpriteUp;
+        else if (en.direction === "left") enSprite = enemy3SpriteLeft;
+        else if (en.direction === "right") enSprite = enemy3SpriteRight;
+    } else if (en.type === 2) {
+        enSprite = enemy2SpriteDown;
+        if (en.direction === "up") enSprite = enemy2SpriteUp;
+        else if (en.direction === "left") enSprite = enemy2SpriteLeft;
+        else if (en.direction === "right") enSprite = enemy2SpriteRight;
+    } else {
+        enSprite = enemySpriteDown;
+        if (en.direction === "up") enSprite = enemySpriteUp;
+        else if (en.direction === "left") enSprite = enemySpriteLeft;
+        else if (en.direction === "right") enSprite = enemySpriteRight;
+    }
+
+    if (enSprite.complete && enSprite.naturalWidth !== 0) {
+        let drawSize = en.size * 2;
+        if (en.hitFlashTimer > 0) {
+            // Tint on an offscreen buffer first, so "source-atop" only affects
+            // the sprite's own opaque pixels instead of whatever is already
+            // drawn on the main canvas underneath it (background, floor, etc.)
+            if (!enemyFlashCanvas) {
+                enemyFlashCanvas = document.createElement("canvas");
+                enemyFlashCtx = enemyFlashCanvas.getContext("2d");
+            }
+            if (enemyFlashCanvas.width !== drawSize || enemyFlashCanvas.height !== drawSize) {
+                enemyFlashCanvas.width = drawSize;
+                enemyFlashCanvas.height = drawSize;
+            }
+            enemyFlashCtx.clearRect(0, 0, drawSize, drawSize);
+            enemyFlashCtx.drawImage(enSprite, 0, 0, drawSize, drawSize);
+            enemyFlashCtx.globalCompositeOperation = "source-atop";
+            enemyFlashCtx.fillStyle = "rgba(255, 0, 0, 0.5)"; // 50% red transparent tint
+            enemyFlashCtx.fillRect(0, 0, drawSize, drawSize);
+            enemyFlashCtx.globalCompositeOperation = "source-over";
+
+            ctx.drawImage(enemyFlashCanvas, en.x - en.size, en.y - en.size, drawSize, drawSize);
+        } else {
+            ctx.drawImage(enSprite, en.x - en.size, en.y - en.size, drawSize, drawSize);
+        }
+    } else {
+        // Fallback if sprite is not loaded
+        ctx.fillStyle = en.hitFlashTimer > 0 ? "rgba(255, 0, 0, 0.5)" : "#ff0000";
+        ctx.beginPath();
+        ctx.arc(en.x, en.y, en.size, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+            for (let t of tears) {
+                let tearDiameter = t.radius * 2;
+                if (t.isHoming) {
+                    ctx.save();
+                    ctx.shadowColor = "#da70d6";
+                    ctx.shadowBlur = 15;
+                    if (tearSprite.complete && tearSprite.naturalWidth !== 0) {
+                        ctx.drawImage(tearSprite, t.x - tearDiameter / 2, t.y - tearDiameter / 2, tearDiameter, tearDiameter);
+                    } else {
+                        ctx.fillStyle = "#da70d6"; ctx.beginPath(); ctx.arc(t.x, t.y, t.radius, 0, Math.PI * 2); ctx.fill();
+                    }
+                    ctx.restore();
+                } else {
+                    if (tearSprite.complete && tearSprite.naturalWidth !== 0) {
+                        ctx.drawImage(tearSprite, t.x - tearDiameter / 2, t.y - tearDiameter / 2, tearDiameter, tearDiameter);
+                    } else {
+                        ctx.fillStyle = "#70d6ff"; ctx.beginPath(); ctx.arc(t.x, t.y, t.radius, 0, Math.PI * 2); ctx.fill();
+                    }
+                }
+            }
+
+            drawConfetti(ctx);
+
+            if (currentRoom !== 6) {
+                const slotWidth = 45;
+                const slotHeight = 45;
+                const minimapSlotX = canvas.width - 65; 
+                const startY = 175;
+
+                const mapWidth = slotWidth * 4.5;
+                const mapHeight = slotHeight * 4.8;
+                const mapX = minimapSlotX - (mapWidth - slotWidth) / 2;
+                const mapY = startY - mapHeight - 15;
+
+                ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+                ctx.fillRect(mapX, mapY, mapWidth, mapHeight);
+                ctx.strokeStyle = "#444444";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(mapX, mapY, mapWidth, mapHeight);
+
+                // --- CLIPPING FIX: Prevent rooms from rendering outside the mini-map square ---
+                ctx.save();
+                ctx.beginPath();
+                ctx.rect(mapX, mapY, mapWidth, mapHeight);
+                ctx.clip();
+
+                const cellW = 35;
+                const cellH = 30;
+                const gridCenterX = mapX + mapWidth / 2;
+                const gridCenterY = mapY + mapHeight / 2 + 10; 
+
+                const roomCoords = {
+                    1: { x: 0, y: 1 },
+                    2: { x: 0, y: 0 },
+                    3: { x: 1, y: 0 },
+                    4: { x: 0, y: -1 },
+                    5: { x: 0, y: -2 },
+                    6: { x: 0, y: 2 },
+                    7: { x: -1, y: -1 }
+                };
+
+                let curCoord = roomCoords[currentRoom] || { x: 0, y: 0 };
+
+                function getMiniMapRoomColor(roomId) {
+                    if (currentRoom === roomId) {
+                        if (roomId === 3 || roomId === 7) return "#ffd700"; 
+                        if (roomId === 6) return "#ff4d6d";
+                        return "#ffffff"; 
+                    }
+                    
+                    let isAdjacent = (Math.abs(curCoord.x - roomCoords[roomId].x) + Math.abs(curCoord.y - roomCoords[roomId].y)) === 1;
+
+                    if (!discoveredRooms[roomId]) {
+                        if (isAdjacent) {
+                            if (roomId === 3 || roomId === 7) return "#997a00"; 
+                            if (roomId === 6) return "#551122";
+                            return "#333333"; 
+                        }
+                        return null;
+                    }
+
+                    if (roomId === 3 || roomId === 7) return "#ffd700"; 
+                    if (roomId === 6) return "#8b0000";
+                    return "#808080"; 
+                }
+
+                function drawMapRoom(roomId) {
+                    let color = getMiniMapRoomColor(roomId);
+                    if (color) {
+                        let coord = roomCoords[roomId];
+                        let rx = gridCenterX + (coord.x - curCoord.x) * (cellW + 4) - cellW / 2;
+                        let ry = gridCenterY + (coord.y - curCoord.y) * (cellH + 4) - cellH / 2;
+
+                        ctx.fillStyle = color;
+                        ctx.fillRect(rx, ry, cellW, cellH);
+                        ctx.strokeStyle = "#000";
+                        ctx.lineWidth = 1.5;
+                        ctx.strokeRect(rx, ry, cellW, cellH);
+                    }
+                }
+
+                for (let rId = 1; rId <= 7; rId++) {
+                    drawMapRoom(rId);
+                }
+
+                ctx.restore(); // Restore context to stop clipping for outside elements
+                // ---------------------------------------------------------------------------
+
+                let itemBoxSize = 42;
+                let itemBoxX = canvas.width - 45 - itemBoxSize / 2; 
+                let itemBoxSpacing = 8;
+                let itemBoxStartY = mapY + mapHeight + 15;
+
+                for (let i = 0; i < 3; i++) {
+                    let bx = itemBoxX;
+                    let by = itemBoxStartY + i * (itemBoxSize + itemBoxSpacing);
+
+                    ctx.fillStyle = "rgba(0, 0, 0, 0.5)"; ctx.fillRect(bx, by, itemBoxSize, itemBoxSize);
+                    ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 1.5; ctx.strokeRect(bx, by, itemBoxSize, itemBoxSize);
+
+                    if (i === 0 && itemInRoom3.collected) {
+                        if (spoonphemusSprite.complete && spoonphemusSprite.naturalWidth !== 0) {
+                            ctx.drawImage(spoonphemusSprite, bx + 4, by + 4, itemBoxSize - 8, itemBoxSize - 8);
+                        } else {
+                            let iconX = bx + itemBoxSize / 2;
+                            let iconY = by + itemBoxSize / 2;
+                            ctx.fillStyle = "#da70d6";
+                            ctx.beginPath();
+                            ctx.arc(iconX, iconY, 12, 0, Math.PI * 2);
+                            ctx.fill();
+                            ctx.fillStyle = "#ffffff";
+                            ctx.beginPath();
+                            ctx.arc(iconX - 3, iconY - 3, 3.5, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    } else if (i === 1 && itemInRoom7.collected) {
+                        if (shoopdawhoopSprite.complete && shoopdawhoopSprite.naturalWidth !== 0) {
+                            ctx.drawImage(shoopdawhoopSprite, bx + 4, by + 4, itemBoxSize - 8, itemBoxSize - 8);
+                        } else {
+                            ctx.fillStyle = "#ffffff";
+                            ctx.fillRect(bx + 4, by + 4, itemBoxSize - 8, itemBoxSize - 8);
+                            ctx.strokeStyle = "#000000";
+                            ctx.lineWidth = 1.5;
+                            ctx.strokeRect(bx + 4, by + 4, itemBoxSize - 8, itemBoxSize - 8);
+                        }
+                    }
+                }
+
+                let hashSize = 35;
+                let heartStartX = 25; let heartStartY = 25; let heartSpacing = 40;
+                let currentDrawnIndex = 0;
+                let hpLeft = player.hp;
+
+                while (hpLeft > 0) {
+                    let hx = heartStartX + (currentDrawnIndex * heartSpacing);
+                    let hy = heartStartY;
+                    if (hpLeft >= 2) {
+                        if (heartSprite.complete && heartSprite.naturalWidth !== 0) ctx.drawImage(heartSprite, hx, hy, hashSize, hashSize);
+                        else { ctx.fillStyle = "red"; ctx.fillRect(hx, hy, hashSize, hashSize); }
+                        hpLeft -= 2;
+                    } else {
+                        if (halfHeartSprite.complete && halfHeartSprite.naturalWidth !== 0) ctx.drawImage(halfHeartSprite, hx, hy, hashSize, hashSize);
+                        else { ctx.fillStyle = "pink"; ctx.fillRect(hx, hy, hashSize, hashSize); }
+                        hpLeft -= 1;
+                    }
+                    currentDrawnIndex++;
+                }
+
+                // Active item slot (Shoopdawhoop), top-left corner below the hearts
+                if (itemInRoom7.collected) {
+                    let slotSize = 48;
+                    let slotX = heartStartX;
+                    let slotY = heartStartY + hashSize + 12;
+
+                    ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+                    ctx.fillRect(slotX, slotY, slotSize, slotSize);
+                    ctx.strokeStyle = activeItemLaser.firing ? "#00e5ff" : "#ffffff";
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(slotX, slotY, slotSize, slotSize);
+
+                    if (shoopdawhoopSprite.complete && shoopdawhoopSprite.naturalWidth !== 0) {
+                        ctx.drawImage(shoopdawhoopSprite, slotX + 4, slotY + 4, slotSize - 8, slotSize - 8);
+                    } else {
+                        ctx.fillStyle = "#ffffff";
+                        ctx.fillRect(slotX + 4, slotY + 4, slotSize - 8, slotSize - 8);
+                    }
+
+                    // While firing, dim the icon and sweep a progress overlay down
+                    // as the beam's 3-second duration runs out.
+                    if (activeItemLaser.firing) {
+                        let progress = activeItemLaser.timer / activeItemLaser.duration;
+                        let overlayH = slotSize * progress;
+                        ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
+                        ctx.fillRect(slotX, slotY + (slotSize - overlayH), slotSize, overlayH);
+                    }
+
+                    ctx.fillStyle = "#ffffff";
+                    ctx.font = "bold 11px Arial";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "top";
+                    ctx.fillText("SPACE", slotX + slotSize / 2, slotY + slotSize + 3);
+                }
+
+                if (trinketInWorld.collected) {
+                    let trinketSize = 40 * 2.5; // 100px
+                    let trinketX = 25;
+                    let trinketY = canvas.height - 25 - trinketSize;
+
+                    if (trinketSprite.complete && trinketSprite.naturalWidth !== 0) {
+                        ctx.drawImage(trinketSprite, trinketX, trinketY, trinketSize, trinketSize);
+                    } else {
+                        ctx.fillStyle = "#ff4d6d";
+                        ctx.fillRect(trinketX, trinketY, trinketSize, trinketSize);
+                    }
+                }
+            }
+
+            drawItemBanner(ctx);
+            drawRoomBanner(ctx);
+
+            ctx.restore();
+        }
+    </script>
+</body>
+</html>
