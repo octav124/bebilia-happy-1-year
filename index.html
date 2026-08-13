@@ -1829,12 +1829,45 @@
         // discover your public IP - it can't punch through many real-world
         // routers/mobile networks when two players are on different
         // networks. A TURN server relays the traffic instead, which is what
-        // actually makes the connection succeed in those cases. This uses
-        // the free public "Open Relay" TURN service (openrelay.metered.ca)
-        // since it needs no signup/API key - fine for a small personal game,
-        // just not meant for heavy production traffic.
-        const mpIceConfig = {
-            iceServers: [
+        // actually makes the connection succeed in those cases.
+        //
+        // IMPORTANT: the "openrelayproject" credentials below are a public
+        // DEMO account shared by thousands of tutorials/projects. It's
+        // frequently overloaded and can silently fail for real long-distance
+        // connections (which shows up as "stuck on Connecting..." forever).
+        // For a reliable fix, get a free TURN account instead:
+        //   1. Go to https://www.metered.ca/tools/openrelay/ and sign up free
+        //      (free tier: 20GB/month TURN relay - plenty for this game)
+        //   2. Create an app, copy its "App Name" (subdomain) and API Key
+        //   3. Paste them into METERED_APP_NAME / METERED_API_KEY below
+        // With those set, getIceServers() below will fetch fresh, dedicated
+        // TURN credentials instead of relying on the shared demo ones.
+        const METERED_APP_NAME = "bebilia"; // e.g. "bebilia-game" (your Metered subdomain)
+        const METERED_API_KEY = "M7m12bENGs-CxMsNCQR60WNFIdxkkbRjrVJj44mgPNXtbMcB";  // your Metered API key
+
+        async function getIceServers() {
+            if (METERED_APP_NAME && METERED_API_KEY) {
+                try {
+                    let resp = await fetch(
+                        "https://" + METERED_APP_NAME + ".metered.live/api/v1/turn/credentials?apiKey=" + METERED_API_KEY
+                    );
+                    if (resp.ok) {
+                        let servers = await resp.json();
+                        if (Array.isArray(servers) && servers.length > 0) {
+                            console.log("[mp] using dedicated Metered TURN credentials");
+                            return servers;
+                        }
+                    }
+                    console.warn("[mp] Metered credential fetch returned unexpected response, falling back to demo TURN");
+                } catch (e) {
+                    console.warn("[mp] failed to fetch Metered TURN credentials, falling back to demo TURN:", e);
+                }
+            }
+
+            // Fallback: public STUN + the shared Open Relay demo TURN credentials.
+            // Works fine on many networks, but can fail under load - configure
+            // METERED_APP_NAME / METERED_API_KEY above for reliability.
+            return [
                 { urls: "stun:stun.l.google.com:19302" },
                 { urls: "stun:stun1.l.google.com:19302" },
                 {
@@ -1852,8 +1885,31 @@
                     username: "openrelayproject",
                     credential: "openrelayproject"
                 }
-            ]
-        };
+            ];
+        }
+
+        // Attaches console diagnostics to a PeerJS connection's underlying
+        // RTCPeerConnection so connection failures are visible in devtools
+        // (F12 -> Console) instead of just hanging silently. Look for the
+        // candidate types logged: "relay" candidates mean TURN is being
+        // used (needed across different networks); if you never see a
+        // "relay" candidate and iceConnectionState gets stuck on
+        // "checking" or goes to "failed", the TURN server isn't reachable.
+        function attachIceDiagnostics(conn, label) {
+            let pc = conn && conn.peerConnection;
+            if (!pc) return;
+            pc.addEventListener("iceconnectionstatechange", function () {
+                console.log("[mp][" + label + "] iceConnectionState:", pc.iceConnectionState);
+            });
+            pc.addEventListener("icegatheringstatechange", function () {
+                console.log("[mp][" + label + "] iceGatheringState:", pc.iceGatheringState);
+            });
+            pc.addEventListener("icecandidate", function (e) {
+                if (e.candidate) {
+                    console.log("[mp][" + label + "] candidate type:", e.candidate.type);
+                }
+            });
+        }
 
         function generateLobbyCode() {
             const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O/1/I to avoid confusion
@@ -1900,7 +1956,7 @@
         }
 
         // ----- Hosting a lobby -----
-        function makeLobby() {
+        async function makeLobby() {
             resetMpState();
             mp.active = true;
             mp.isHost = true;
@@ -1919,7 +1975,12 @@
                 return;
             }
 
-            mp.peer = new Peer("bebilia-" + mp.code, { config: mpIceConfig });
+            let iceServers = await getIceServers();
+            let myLobbyCode = mp.code; // guard against the lobby being left/reset while we awaited
+
+            if (!mp.active || mp.code !== myLobbyCode) return;
+
+            mp.peer = new Peer("bebilia-" + mp.code, { config: { iceServers: iceServers } });
 
             mp.peer.on("open", function () {
                 console.log("[mp] host peer open:", mp.peer.id);
@@ -1933,6 +1994,7 @@
                 }
                 console.log("[mp] incoming connection from guest");
                 mp.conn = conn;
+                attachIceDiagnostics(conn, "host");
 
                 // The "connection" event can fire slightly before the data
                 // channel finishes opening - wait for "open" before treating
@@ -1984,7 +2046,7 @@
             document.getElementById("mp-join-overlay").classList.add("slide-in");
         }
 
-        function submitJoinCode() {
+        async function submitJoinCode() {
             let input = document.getElementById("mp-join-code-input");
             let code = input.value.trim().toUpperCase();
             let errorEl = document.getElementById("mp-join-error");
@@ -2005,16 +2067,20 @@
             document.getElementById("mp-join-status-text").textContent = "Connecting...";
             mp.code = code;
 
-            mp.peer = new Peer(undefined, { config: mpIceConfig });
+            let iceServers = await getIceServers();
+            if (mp.code !== code) return; // guard against user backing out while we awaited
+
+            mp.peer = new Peer(undefined, { config: { iceServers: iceServers } });
 
             mp.peer.on("open", function () {
                 console.log("[mp] guest peer open:", mp.peer.id, "connecting to", "bebilia-" + code);
                 let conn = mp.peer.connect("bebilia-" + code, { reliable: true });
                 mp.conn = conn;
+                attachIceDiagnostics(conn, "guest");
 
                 let stillTryingTimeout = setTimeout(function () {
                     if (!mp.connected) {
-                        document.getElementById("mp-join-status-text").textContent = "Still connecting... this can take a few seconds.";
+                        document.getElementById("mp-join-status-text").textContent = "Still connecting... this can take a few seconds (may be relaying through a TURN server).";
                     }
                 }, 5000);
 
@@ -2029,7 +2095,7 @@
                         mp.active = true;
                         mp.isHost = false;
                     }
-                }, 20000);
+                }, 25000);
 
                 conn.on("open", function () {
                     console.log("[mp] guest<->host data channel open");
