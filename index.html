@@ -352,7 +352,9 @@
             display: block;
         }
 
-        #character-select-overlay {
+        #mode-select-overlay,
+        #character-select-overlay,
+        #multiplayer-select-overlay {
             position: absolute;
             top: 0;
             left: 0;
@@ -362,14 +364,77 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 25;
             background: linear-gradient(180deg, #2b0f16 0%, #4a1622 100%);
             transform: translateY(100%);
             transition: transform 0.6s cubic-bezier(0.65, 0, 0.35, 1);
         }
 
-        #character-select-overlay.slide-in {
+        #mode-select-overlay {
+            z-index: 25;
+        }
+
+        #character-select-overlay,
+        #multiplayer-select-overlay {
+            z-index: 24;
+        }
+
+        #mode-select-overlay.slide-in,
+        #character-select-overlay.slide-in,
+        #multiplayer-select-overlay.slide-in {
             transform: translateY(0);
+        }
+
+        #mode-select-overlay.slide-up-out {
+            transform: translateY(-100%);
+        }
+
+        .overlay-back-btn {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: rgba(0, 0, 0, 0.35);
+            color: #ffffff;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 5px 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            font-family: Arial, sans-serif;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.15s, border-color 0.15s;
+            z-index: 5;
+        }
+
+        .overlay-back-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #ffd166;
+        }
+
+        .menu-btn-col {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .menu-btn {
+            width: 210px;
+            padding: 13px 18px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.35);
+            border: 3px solid rgba(255, 255, 255, 0.25);
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            font-weight: bold;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: transform 0.15s, border-color 0.15s, background 0.15s;
+        }
+
+        .menu-btn:hover {
+            transform: translateY(-6px) scale(1.06);
+            border-color: #ffd166;
+            background: rgba(255, 255, 255, 0.12);
         }
 
         .char-select-title {
@@ -670,11 +735,30 @@
                         <img src="arrow.png" alt="Arrow">
                     </div>
 
-                    <div id="start-screen-overlay" onclick="goToCharacterSelect()">
+                    <div id="start-screen-overlay" onclick="goToModeSelect()">
                         <img src="startscreen.png" alt="Start Screen">
                     </div>
 
+                    <div id="mode-select-overlay">
+                        <button class="overlay-back-btn" onclick="event.stopPropagation(); modeSelectBack();">⬅ Back</button>
+                        <div class="char-select-title">SELECT MODE</div>
+                        <div class="menu-btn-col">
+                            <button class="menu-btn" onclick="goToCharacterSelectFromMode()">Singleplayer</button>
+                            <button class="menu-btn" onclick="goToMultiplayerSelect()">Multiplayer</button>
+                        </div>
+                    </div>
+
+                    <div id="multiplayer-select-overlay">
+                        <button class="overlay-back-btn" onclick="event.stopPropagation(); multiplayerSelectBack();">⬅ Back</button>
+                        <div class="char-select-title">MULTIPLAYER</div>
+                        <div class="menu-btn-col">
+                            <button class="menu-btn" onclick="makeLobby()">Make Lobby</button>
+                            <button class="menu-btn" onclick="joinLobby()">Join Lobby</button>
+                        </div>
+                    </div>
+
                     <div id="character-select-overlay">
+                        <button class="overlay-back-btn" onclick="event.stopPropagation(); characterSelectBack();">⬅ Back</button>
                         <div class="char-select-title">CHOOSE YOUR CHARACTER</div>
                         <div class="char-select-row">
                             <div class="char-slot" onclick="selectCharacterAndStart('bebilia')">
@@ -1510,22 +1594,76 @@
             drawGame();
         }
 
-        // Resets the title-screen and character-select overlays back to their
-        // starting positions (title visible, character select slid out of view).
+        // Resets the title-screen, mode-select, multiplayer-select and
+        // character-select overlays back to their starting positions
+        // (title visible, everything else slid out of view).
         function resetStartOverlays() {
             let startOverlay = document.getElementById("start-screen-overlay");
+            let modeOverlay = document.getElementById("mode-select-overlay");
+            let multiplayerOverlay = document.getElementById("multiplayer-select-overlay");
             let charOverlay = document.getElementById("character-select-overlay");
             startOverlay.classList.remove("slide-up-out");
+            modeOverlay.classList.remove("slide-in", "slide-up-out");
+            multiplayerOverlay.classList.remove("slide-in");
             charOverlay.classList.remove("slide-in");
         }
 
         // Isaac-style transition: the title screen slides up and out while the
-        // character select screen slides up into view from below.
-        function goToCharacterSelect() {
+        // mode-select screen (singleplayer/multiplayer) slides up into view from below.
+        function goToModeSelect() {
             let startOverlay = document.getElementById("start-screen-overlay");
-            let charOverlay = document.getElementById("character-select-overlay");
+            let modeOverlay = document.getElementById("mode-select-overlay");
             startOverlay.classList.add("slide-up-out");
+            modeOverlay.classList.add("slide-in");
+        }
+
+        // Back out of mode-select to the title screen.
+        function modeSelectBack() {
+            let startOverlay = document.getElementById("start-screen-overlay");
+            let modeOverlay = document.getElementById("mode-select-overlay");
+            modeOverlay.classList.remove("slide-in");
+            startOverlay.classList.remove("slide-up-out");
+        }
+
+        // Mode-select -> character-select (Singleplayer button).
+        function goToCharacterSelectFromMode() {
+            let modeOverlay = document.getElementById("mode-select-overlay");
+            let charOverlay = document.getElementById("character-select-overlay");
+            modeOverlay.classList.add("slide-up-out");
             charOverlay.classList.add("slide-in");
+        }
+
+        // Back out of character-select to mode-select.
+        function characterSelectBack() {
+            let modeOverlay = document.getElementById("mode-select-overlay");
+            let charOverlay = document.getElementById("character-select-overlay");
+            charOverlay.classList.remove("slide-in");
+            modeOverlay.classList.remove("slide-up-out");
+        }
+
+        // Mode-select -> multiplayer-select (Multiplayer button).
+        function goToMultiplayerSelect() {
+            let modeOverlay = document.getElementById("mode-select-overlay");
+            let multiplayerOverlay = document.getElementById("multiplayer-select-overlay");
+            modeOverlay.classList.add("slide-up-out");
+            multiplayerOverlay.classList.add("slide-in");
+        }
+
+        // Back out of multiplayer-select to mode-select.
+        function multiplayerSelectBack() {
+            let modeOverlay = document.getElementById("mode-select-overlay");
+            let multiplayerOverlay = document.getElementById("multiplayer-select-overlay");
+            multiplayerOverlay.classList.remove("slide-in");
+            modeOverlay.classList.remove("slide-up-out");
+        }
+
+        // Placeholders for now - multiplayer lobby functionality isn't wired up yet.
+        function makeLobby() {
+            // TODO: hook up lobby creation
+        }
+
+        function joinLobby() {
+            // TODO: hook up lobby joining
         }
 
         function selectCharacterAndStart(characterId) {
