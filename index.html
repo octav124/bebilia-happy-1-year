@@ -1171,8 +1171,8 @@
         let currentRoom = 1; 
         let transitionAnim = 0; 
         let slideDirection = 'up'; 
-        let discoveredRooms = { 1: true, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false };
-        let clearedRooms = { 1: true, 2: false, 3: false, 4: false, 5: false, 6: true, 7: true };
+        let discoveredRooms = { 1: true, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false, 8: false };
+        let clearedRooms = { 1: true, 2: false, 3: false, 4: false, 5: false, 6: true, 7: true, 8: true };
 
         let itemInRoom3 = { x: 640, y: 480, size: 53.3, collected: false };
         let itemInRoom7 = { x: 640, y: 480, size: 53.3, collected: false };
@@ -1623,8 +1623,8 @@
 
             currentRoom = 1;
             transitionAnim = 0;
-            discoveredRooms = { 1: true, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false };
-            clearedRooms = { 1: true, 2: false, 3: false, 4: false, 5: false, 6: true, 7: true };
+            discoveredRooms = { 1: true, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false, 8: false };
+            clearedRooms = { 1: true, 2: false, 3: false, 4: false, 5: false, 6: true, 7: true, 8: true };
 
             itemInRoom3 = { x: canvas.width / 2, y: canvas.height / 2, size: 53.3, collected: false };
             itemInRoom7 = { x: canvas.width / 2, y: canvas.height / 2, size: 53.3, collected: false };
@@ -1689,8 +1689,8 @@
             stopEnemyAmbientSounds();
             
             currentRoom = 1;
-            discoveredRooms = { 1: true, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false };
-            clearedRooms = { 1: true, 2: false, 3: false, 4: false, 5: false, 6: true, 7: true };
+            discoveredRooms = { 1: true, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false, 8: false };
+            clearedRooms = { 1: true, 2: false, 3: false, 4: false, 5: false, 6: true, 7: true, 8: true };
             itemInRoom3.collected = false;
             itemInRoom7.collected = false;
             trinketInWorld.collected = false;
@@ -2395,12 +2395,12 @@
                     if (!hasRightDoor || !inDoorY) return false;
                 }
                 if (top < wallThickness) {
-                    let hasTopDoor = (currentRoom === 1 || currentRoom === 2 || currentRoom === 4 || currentRoom === 6) && !enemiesExist;
+                    let hasTopDoor = (currentRoom === 1 || currentRoom === 2 || currentRoom === 4 || currentRoom === 6 || currentRoom === 5) && !enemiesExist;
                     let inDoorX = (px >= doorX1 && px <= doorX2);
                     if (!hasTopDoor || !inDoorX) return false;
                 }
                 if (bottom > canvas.height - wallThickness) {
-                    let hasBottomDoor = (currentRoom === 1 || currentRoom === 2 || currentRoom === 4 || currentRoom === 5) && !enemiesExist;
+                    let hasBottomDoor = (currentRoom === 1 || currentRoom === 2 || currentRoom === 4 || currentRoom === 5 || currentRoom === 8) && !enemiesExist;
                     let inDoorX = (px >= doorX1 && px <= doorX2);
                     if (!hasBottomDoor || !inDoorX) return false;
                 }
@@ -2513,6 +2513,18 @@
                 } else if (currentRoom === 5) {
                     if (player.x >= doorX1 && player.x <= doorX2 && player.y + player.size >= canvas.height - wallThickness - 5) {
                         targetRoomToSwitch = 4;
+                        newSlideDir = 'down';
+                        newPlayerX = canvas.width / 2;
+                        newPlayerY = wallThickness + player.size + 15;
+                    } else if (player.x >= doorX1 && player.x <= doorX2 && player.y - player.size <= wallThickness + 5) {
+                        targetRoomToSwitch = 8;
+                        newSlideDir = 'up';
+                        newPlayerX = canvas.width / 2;
+                        newPlayerY = canvas.height - wallThickness - player.size - 15;
+                    }
+                } else if (currentRoom === 8) {
+                    if (player.x >= doorX1 && player.x <= doorX2 && player.y + player.size >= canvas.height - wallThickness - 5) {
+                        targetRoomToSwitch = 5;
                         newSlideDir = 'down';
                         newPlayerX = canvas.width / 2;
                         newPlayerY = wallThickness + player.size + 15;
@@ -3026,6 +3038,33 @@
                 ctx.beginPath();
                 ctx.moveTo(0, 0); ctx.lineTo(canvas.width, 0); ctx.lineTo(canvas.width, canvas.height); ctx.lineTo(0, canvas.height);
                 ctx.closePath();
+                ctx.moveTo(wallThickness, wallThickness); ctx.lineTo(doorX, wallThickness);
+                ctx.arc(doorCenterX, wallThickness, doorWidth / 2, Math.PI, 0, false);
+                ctx.lineTo(canvas.width - wallThickness, wallThickness);
+                ctx.lineTo(canvas.width - wallThickness, canvas.height - wallThickness);
+                ctx.lineTo(doorX + doorWidth, canvas.height - wallThickness);
+                ctx.arc(doorCenterX, canvas.height - wallThickness, doorWidth / 2, 0, Math.PI, false);
+                ctx.lineTo(wallThickness, canvas.height - wallThickness);
+                ctx.closePath();
+                ctx.fill('evenodd');
+
+                ctx.save(); ctx.beginPath(); ctx.arc(doorCenterX, wallThickness, doorWidth / 2, Math.PI, 0, false); ctx.closePath(); ctx.clip();
+                if (floorSprite.complete && floorSprite.naturalWidth !== 0) ctx.drawImage(floorSprite, 0, 0, canvas.width, canvas.height);
+                else { ctx.fillStyle = "#ffe6eb"; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+                ctx.restore();
+
+                ctx.save(); ctx.beginPath(); ctx.arc(doorCenterX, canvas.height - wallThickness, doorWidth / 2, 0, Math.PI, false); ctx.closePath(); ctx.clip();
+                if (floorSprite.complete && floorSprite.naturalWidth !== 0) ctx.drawImage(floorSprite, 0, 0, canvas.width, canvas.height);
+                else { ctx.fillStyle = "#ffe6eb"; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+                ctx.restore();
+
+                drawDoor(ctx, doorCenterX, wallThickness, doorWidth / 2, Math.PI, 0, false, false);
+                drawDoor(ctx, doorCenterX, canvas.height - wallThickness, doorWidth / 2, 0, Math.PI, false, false);
+
+            } else if (currentRoom === 8) {
+                ctx.beginPath();
+                ctx.moveTo(0, 0); ctx.lineTo(canvas.width, 0); ctx.lineTo(canvas.width, canvas.height); ctx.lineTo(0, canvas.height);
+                ctx.closePath();
                 ctx.moveTo(wallThickness, wallThickness); ctx.lineTo(canvas.width - wallThickness, wallThickness);
                 ctx.lineTo(canvas.width - wallThickness, canvas.height - wallThickness);
                 ctx.lineTo(doorX + doorWidth, canvas.height - wallThickness);
@@ -3348,7 +3387,8 @@
                     4: { x: 0, y: -1 },
                     5: { x: 0, y: -2 },
                     6: { x: 0, y: 2 },
-                    7: { x: -1, y: -1 }
+                    7: { x: -1, y: -1 },
+                    8: { x: 0, y: -3 }
                 };
 
                 let curCoord = roomCoords[currentRoom] || { x: 0, y: 0 };
@@ -3391,7 +3431,7 @@
                     }
                 }
 
-                for (let rId = 1; rId <= 7; rId++) {
+                for (let rId = 1; rId <= 8; rId++) {
                     drawMapRoom(rId);
                 }
 
