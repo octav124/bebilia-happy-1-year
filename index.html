@@ -556,6 +556,12 @@
     <!-- Prank Room Video Element -->
     <video id="prank-video" src="prankvideo.mp4" loop playsinline preload="auto" style="display:none;"></video>
 
+    <!-- Dedicated video element for the "???" character, which uses the prank
+         room video as its sprite in every direction, idle or walking. Kept
+         separate from #prank-video so the prank-room jump-scare feature and
+         this character's sprite don't fight over play/pause state. -->
+    <video id="prank-character-video" src="prankvideo.mp4" loop muted playsinline preload="auto" style="display:none;"></video>
+
     <img src="flower.png" class="corner-img top-left" alt="Flower Corner">
     <img src="flower.png" class="corner-img top-right" alt="Flower Corner">
     <img src="flower.png" class="corner-img bottom-left" alt="Flower Corner">
@@ -679,7 +685,7 @@
                                 <img src="oktik_down.png" alt="Oktik" onerror="this.style.display='none'">
                                 <div class="char-select-label">Oktik</div>
                             </div>
-                            <div class="char-slot char-slot-locked">
+                            <div class="char-slot" onclick="selectCharacterAndStart('prank')">
                                 <div class="char-slot-question">?</div>
                                 <div class="char-select-label">???</div>
                             </div>
@@ -945,6 +951,7 @@
         let canvas, ctx;
         let enemyFlashCanvas = null, enemyFlashCtx = null;
         let selectedCharacter = "bebilia";
+        let prankCharacterVideo = null;
         let gameInterval = null;
         let player, keys = {}, tears = [], enemies = [], dyingEnemies = [];
         let shootCooldown = 0;
@@ -1398,6 +1405,13 @@
             canvas = document.getElementById("gameCanvas");
             ctx = canvas.getContext("2d");
 
+            if (!prankCharacterVideo) {
+                prankCharacterVideo = document.getElementById("prank-character-video");
+            }
+            if (prankCharacterVideo && prankCharacterVideo.paused) {
+                prankCharacterVideo.play().catch(e => {});
+            }
+
             currentRoom = 1;
             transitionAnim = 0;
             discoveredRooms = { 1: true, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false };
@@ -1517,6 +1531,11 @@
         function selectCharacterAndStart(characterId) {
             selectedCharacter = characterId;
             document.getElementById("character-select-overlay").classList.remove("slide-in");
+
+            if (characterId === "prank" && prankCharacterVideo && prankCharacterVideo.paused) {
+                prankCharacterVideo.play().catch(e => {});
+            }
+
             startActualGame();
         }
 
@@ -2454,6 +2473,7 @@
                 }
             }
 
+            let isPrankCharacter = (selectedCharacter === "prank");
             let activeSpriteSet = characterSpriteSets[selectedCharacter] || characterSpriteSets.bebilia;
 
             let currentSprite = activeSpriteSet.down;
@@ -2461,7 +2481,7 @@
             if (player && player.direction === "left") currentSprite = activeSpriteSet.left;
             if (player && player.direction === "right") currentSprite = activeSpriteSet.right;
 
-            if (player && player.isWalking) {
+            if (player && player.isWalking && !isPrankCharacter) {
                 let dir = player.direction in activeSpriteSet.walk ? player.direction : "down";
                 let walkSprite = activeSpriteSet.walk[dir][player.walkFrame];
                 if (walkSprite.complete && walkSprite.naturalWidth !== 0) {
@@ -2471,8 +2491,16 @@
             }
 
             if (player) {
-                if (hitCooldown % 10 < 5) { 
-                    if (currentSprite.complete && currentSprite.naturalWidth !== 0) {
+                if (hitCooldown % 10 < 5) {
+                    if (isPrankCharacter && prankCharacterVideo && prankCharacterVideo.readyState >= 2) {
+                        // The "???" character: the prank room video plays as its
+                        // sprite in every direction, standing still or walking.
+                        ctx.drawImage(
+                            prankCharacterVideo,
+                            player.x - player.size, player.y - player.size,
+                            player.size * 2, player.size * 2
+                        );
+                    } else if (!isPrankCharacter && currentSprite.complete && currentSprite.naturalWidth !== 0) {
                         ctx.drawImage(
                             currentSprite,
                             player.x - player.size, player.y - player.size,
