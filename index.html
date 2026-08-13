@@ -1825,6 +1825,36 @@
             sendTimer: 0
         };
 
+        // WebRTC connection config: STUN alone (PeerJS's default) can only
+        // discover your public IP - it can't punch through many real-world
+        // routers/mobile networks when two players are on different
+        // networks. A TURN server relays the traffic instead, which is what
+        // actually makes the connection succeed in those cases. This uses
+        // the free public "Open Relay" TURN service (openrelay.metered.ca)
+        // since it needs no signup/API key - fine for a small personal game,
+        // just not meant for heavy production traffic.
+        const mpIceConfig = {
+            iceServers: [
+                { urls: "stun:stun.l.google.com:19302" },
+                { urls: "stun:stun1.l.google.com:19302" },
+                {
+                    urls: "turn:openrelay.metered.ca:80",
+                    username: "openrelayproject",
+                    credential: "openrelayproject"
+                },
+                {
+                    urls: "turn:openrelay.metered.ca:443",
+                    username: "openrelayproject",
+                    credential: "openrelayproject"
+                },
+                {
+                    urls: "turn:openrelay.metered.ca:443?transport=tcp",
+                    username: "openrelayproject",
+                    credential: "openrelayproject"
+                }
+            ]
+        };
+
         function generateLobbyCode() {
             const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O/1/I to avoid confusion
             let code = "";
@@ -1889,10 +1919,10 @@
                 return;
             }
 
-            mp.peer = new Peer("bebilia-" + mp.code);
+            mp.peer = new Peer("bebilia-" + mp.code, { config: mpIceConfig });
 
             mp.peer.on("open", function () {
-                // ready to receive a connection
+                console.log("[mp] host peer open:", mp.peer.id);
             });
 
             mp.peer.on("connection", function (conn) {
@@ -1901,13 +1931,26 @@
                     conn.close();
                     return;
                 }
+                console.log("[mp] incoming connection from guest");
                 mp.conn = conn;
-                setupMpConnection();
+
+                // The "connection" event can fire slightly before the data
+                // channel finishes opening - wait for "open" before treating
+                // the pair as connected.
+                conn.on("open", function () {
+                    console.log("[mp] host<->guest data channel open");
+                    setupMpConnection();
+                });
             });
 
             mp.peer.on("error", function (err) {
-                console.error("Peer error (host):", err);
-                document.getElementById("mp-host-status-text").textContent = "Connection error. Try again.";
+                console.error("[mp] Peer error (host):", err);
+                document.getElementById("mp-host-status-text").textContent = "Connection error (" + err.type + "). Try Back and make a new lobby.";
+            });
+
+            mp.peer.on("disconnected", function () {
+                console.warn("[mp] host peer disconnected from signaling server, reconnecting...");
+                if (mp.peer && !mp.peer.destroyed) mp.peer.reconnect();
             });
         }
 
@@ -1957,38 +2000,71 @@
             }
 
             document.getElementById("mp-join-submit-btn").disabled = true;
+            document.getElementById("mp-join-status-row").style.display = "flex";
+            document.getElementById("mp-join-status-dot").classList.remove("connected");
+            document.getElementById("mp-join-status-text").textContent = "Connecting...";
             mp.code = code;
 
-            mp.peer = new Peer();
+            mp.peer = new Peer(undefined, { config: mpIceConfig });
 
             mp.peer.on("open", function () {
+                console.log("[mp] guest peer open:", mp.peer.id, "connecting to", "bebilia-" + code);
                 let conn = mp.peer.connect("bebilia-" + code, { reliable: true });
                 mp.conn = conn;
 
+                let stillTryingTimeout = setTimeout(function () {
+                    if (!mp.connected) {
+                        document.getElementById("mp-join-status-text").textContent = "Still connecting... this can take a few seconds.";
+                    }
+                }, 5000);
+
                 let connectTimeout = setTimeout(function () {
                     if (!mp.connected) {
-                        errorEl.textContent = "Couldn't find that lobby. Check the code and try again.";
+                        console.warn("[mp] guest connection timed out");
+                        errorEl.textContent = "Couldn't connect. Double-check the code and that your friend's lobby is still open, then try again.";
+                        document.getElementById("mp-join-status-row").style.display = "none";
                         document.getElementById("mp-join-submit-btn").disabled = false;
                         teardownPeer();
                         resetMpState();
                         mp.active = true;
                         mp.isHost = false;
                     }
-                }, 12000);
+                }, 20000);
 
                 conn.on("open", function () {
+                    console.log("[mp] guest<->host data channel open");
+                    clearTimeout(stillTryingTimeout);
                     clearTimeout(connectTimeout);
                     setupMpConnection();
                     document.getElementById("mp-join-status-row").style.display = "flex";
                     document.getElementById("mp-join-status-dot").classList.add("connected");
                     document.getElementById("mp-join-status-text").textContent = "Connected! Waiting for host to start...";
                 });
+
+                conn.on("error", function (err) {
+                    console.error("[mp] guest connection error:", err);
+                    clearTimeout(stillTryingTimeout);
+                    clearTimeout(connectTimeout);
+                    errorEl.textContent = "Connection failed. Check the code and try again.";
+                    document.getElementById("mp-join-status-row").style.display = "none";
+                    document.getElementById("mp-join-submit-btn").disabled = false;
+                });
             });
 
             mp.peer.on("error", function (err) {
-                console.error("Peer error (join):", err);
-                errorEl.textContent = "Couldn't find that lobby. Check the code and try again.";
+                console.error("[mp] Peer error (join):", err);
+                document.getElementById("mp-join-status-row").style.display = "none";
+                if (err.type === "peer-unavailable") {
+                    errorEl.textContent = "No lobby found with that code. Check it and try again.";
+                } else {
+                    errorEl.textContent = "Connection error (" + err.type + "). Try again.";
+                }
                 document.getElementById("mp-join-submit-btn").disabled = false;
+            });
+
+            mp.peer.on("disconnected", function () {
+                console.warn("[mp] guest peer disconnected from signaling server, reconnecting...");
+                if (mp.peer && !mp.peer.destroyed) mp.peer.reconnect();
             });
         }
 
