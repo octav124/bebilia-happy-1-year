@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Our Anniversary</title>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <style>
         html, body {
             margin: 0;
@@ -354,7 +355,9 @@
 
         #mode-select-overlay,
         #character-select-overlay,
-        #multiplayer-select-overlay {
+        #multiplayer-select-overlay,
+        #mp-host-overlay,
+        #mp-join-overlay {
             position: absolute;
             top: 0;
             left: 0;
@@ -374,14 +377,103 @@
         }
 
         #character-select-overlay,
-        #multiplayer-select-overlay {
+        #multiplayer-select-overlay,
+        #mp-host-overlay,
+        #mp-join-overlay {
             z-index: 24;
         }
 
         #mode-select-overlay.slide-in,
         #character-select-overlay.slide-in,
-        #multiplayer-select-overlay.slide-in {
+        #multiplayer-select-overlay.slide-in,
+        #mp-host-overlay.slide-in,
+        #mp-join-overlay.slide-in {
             transform: translateY(0);
+        }
+
+        .lobby-code-display {
+            font-size: 2.1rem;
+            letter-spacing: 5px;
+            font-weight: bold;
+            color: #ffd166;
+            background: rgba(0, 0, 0, 0.35);
+            border: 3px solid rgba(255, 255, 255, 0.25);
+            border-radius: 12px;
+            padding: 12px 26px;
+            margin-bottom: 14px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .lobby-status-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 18px;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            font-size: 0.85rem;
+            font-weight: bold;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #888888;
+            transition: background-color 0.2s, box-shadow 0.2s;
+            flex-shrink: 0;
+        }
+
+        .status-dot.connected {
+            background: #2ecc40;
+            box-shadow: 0 0 8px #2ecc40;
+        }
+
+        .join-code-input {
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-size: 1.3rem;
+            text-align: center;
+            width: 180px;
+            padding: 10px;
+            border-radius: 10px;
+            border: 3px solid rgba(255, 255, 255, 0.25);
+            background: rgba(0, 0, 0, 0.35);
+            color: #ffffff;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 14px;
+            outline: none;
+        }
+
+        .join-code-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+            letter-spacing: 2px;
+        }
+
+        .join-code-input:focus {
+            border-color: #ffd166;
+        }
+
+        .menu-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .mp-hint-text {
+            color: rgba(255, 255, 255, 0.75);
+            font-family: Arial, sans-serif;
+            font-size: 0.75rem;
+            min-height: 16px;
+            margin-top: -4px;
+            margin-bottom: 12px;
+            text-align: center;
+            max-width: 240px;
+        }
+
+        .mp-error-text {
+            color: #ff6b6b;
         }
 
         #mode-select-overlay.slide-up-out {
@@ -757,9 +849,39 @@
                         </div>
                     </div>
 
+                    <div id="mp-host-overlay">
+                        <button class="overlay-back-btn" onclick="event.stopPropagation(); leaveHostLobby();">⬅ Back</button>
+                        <div class="char-select-title">YOUR LOBBY CODE</div>
+                        <div class="lobby-code-display" id="mp-host-code">------</div>
+                        <div class="lobby-status-row">
+                            <div class="status-dot" id="mp-host-status-dot"></div>
+                            <span id="mp-host-status-text">Waiting for friend to join...</span>
+                        </div>
+                        <div class="mp-hint-text">Send them this code so they can join from the "Join Lobby" menu.</div>
+                        <div class="menu-btn-col">
+                            <button class="menu-btn" onclick="copyLobbyCode()">Copy Code</button>
+                            <button class="menu-btn" id="mp-start-game-btn" onclick="startMultiplayerGame()" disabled>Start Game</button>
+                        </div>
+                    </div>
+
+                    <div id="mp-join-overlay">
+                        <button class="overlay-back-btn" onclick="event.stopPropagation(); leaveJoinLobby();">⬅ Back</button>
+                        <div class="char-select-title">JOIN LOBBY</div>
+                        <input type="text" id="mp-join-code-input" class="join-code-input" placeholder="CODE" maxlength="6" oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');" onkeydown="if (event.key === 'Enter') submitJoinCode();">
+                        <div class="mp-hint-text mp-error-text" id="mp-join-error"></div>
+                        <div class="lobby-status-row" id="mp-join-status-row" style="display:none;">
+                            <div class="status-dot" id="mp-join-status-dot"></div>
+                            <span id="mp-join-status-text">Connected! Waiting for host to start...</span>
+                        </div>
+                        <div class="menu-btn-col">
+                            <button class="menu-btn" id="mp-join-submit-btn" onclick="submitJoinCode()">Join</button>
+                        </div>
+                    </div>
+
                     <div id="character-select-overlay">
                         <button class="overlay-back-btn" onclick="event.stopPropagation(); characterSelectBack();">⬅ Back</button>
                         <div class="char-select-title">CHOOSE YOUR CHARACTER</div>
+                        <div class="mp-hint-text" id="mp-char-select-status"></div>
                         <div class="char-select-row">
                             <div class="char-slot" onclick="selectCharacterAndStart('bebilia')">
                                 <img src="player_down.png" alt="Bebilia" onerror="this.style.display='none'">
@@ -1602,10 +1724,16 @@
             let modeOverlay = document.getElementById("mode-select-overlay");
             let multiplayerOverlay = document.getElementById("multiplayer-select-overlay");
             let charOverlay = document.getElementById("character-select-overlay");
+            let mpHostOverlay = document.getElementById("mp-host-overlay");
+            let mpJoinOverlay = document.getElementById("mp-join-overlay");
             startOverlay.classList.remove("slide-up-out");
             modeOverlay.classList.remove("slide-in", "slide-up-out");
             multiplayerOverlay.classList.remove("slide-in");
             charOverlay.classList.remove("slide-in");
+            mpHostOverlay.classList.remove("slide-in");
+            mpJoinOverlay.classList.remove("slide-in");
+            teardownPeer();
+            resetMpState();
         }
 
         // Isaac-style transition: the title screen slides up and out while the
@@ -1627,14 +1755,23 @@
 
         // Mode-select -> character-select (Singleplayer button).
         function goToCharacterSelectFromMode() {
+            teardownPeer();
+            resetMpState();
             let modeOverlay = document.getElementById("mode-select-overlay");
             let charOverlay = document.getElementById("character-select-overlay");
             modeOverlay.classList.add("slide-up-out");
             charOverlay.classList.add("slide-in");
         }
 
-        // Back out of character-select to mode-select.
+        // Back out of character-select to mode-select (or, in multiplayer, leaves the lobby).
         function characterSelectBack() {
+            if (mp.active) {
+                leaveLobbyCompletely();
+                document.getElementById("character-select-overlay").classList.remove("slide-in");
+                document.getElementById("mode-select-overlay").classList.add("slide-in");
+                document.getElementById("mode-select-overlay").classList.remove("slide-up-out");
+                return;
+            }
             let modeOverlay = document.getElementById("mode-select-overlay");
             let charOverlay = document.getElementById("character-select-overlay");
             charOverlay.classList.remove("slide-in");
@@ -1657,23 +1794,313 @@
             modeOverlay.classList.remove("slide-up-out");
         }
 
-        // Placeholders for now - multiplayer lobby functionality isn't wired up yet.
-        function makeLobby() {
-            // TODO: hook up lobby creation
+        // ==========================================
+        // MULTIPLAYER (PeerJS WebRTC, peer-to-peer)
+        // ==========================================
+        // Uses PeerJS's free public signaling broker to set up a direct
+        // WebRTC data-channel between the two browsers. No custom backend
+        // is required, so this works fine on a static Vercel deployment.
+        let mp = {
+            active: false,        // true once inside the multiplayer flow
+            peer: null,
+            conn: null,
+            isHost: false,
+            code: null,
+            connected: false,     // data channel open to the other player
+            myCharChosen: false,
+            remoteCharChosen: false,
+            gameStarted: false,
+            remote: {
+                character: null,
+                room: null,
+                x: 0,
+                y: 0,
+                direction: "down",
+                isWalking: false,
+                walkFrame: 0,
+                hp: 6
+            },
+            sendTimer: 0
+        };
+
+        function generateLobbyCode() {
+            const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O/1/I to avoid confusion
+            let code = "";
+            for (let i = 0; i < 5; i++) code += chars[Math.floor(Math.random() * chars.length)];
+            return code;
         }
 
+        function resetMpState() {
+            mp.active = false;
+            mp.peer = null;
+            mp.conn = null;
+            mp.isHost = false;
+            mp.code = null;
+            mp.connected = false;
+            mp.myCharChosen = false;
+            mp.remoteCharChosen = false;
+            mp.gameStarted = false;
+            mp.remote.character = null;
+            mp.remote.room = null;
+        }
+
+        function teardownPeer() {
+            if (mp.conn) {
+                try { mp.conn.close(); } catch (e) {}
+            }
+            if (mp.peer) {
+                try { mp.peer.destroy(); } catch (e) {}
+            }
+        }
+
+        function leaveLobbyCompletely() {
+            teardownPeer();
+            resetMpState();
+            document.getElementById("mp-host-overlay").classList.remove("slide-in");
+            document.getElementById("mp-join-overlay").classList.remove("slide-in");
+            document.getElementById("mp-start-game-btn").disabled = true;
+            document.getElementById("mp-host-status-dot").classList.remove("connected");
+            document.getElementById("mp-host-status-text").textContent = "Waiting for friend to join...";
+            document.getElementById("mp-join-status-row").style.display = "none";
+            document.getElementById("mp-join-error").textContent = "";
+            document.getElementById("mp-join-code-input").value = "";
+            document.getElementById("mp-char-select-status").textContent = "";
+        }
+
+        // ----- Hosting a lobby -----
+        function makeLobby() {
+            resetMpState();
+            mp.active = true;
+            mp.isHost = true;
+            mp.code = generateLobbyCode();
+
+            document.getElementById("mp-host-code").textContent = mp.code;
+            document.getElementById("mp-start-game-btn").disabled = true;
+            document.getElementById("mp-host-status-dot").classList.remove("connected");
+            document.getElementById("mp-host-status-text").textContent = "Waiting for friend to join...";
+
+            document.getElementById("multiplayer-select-overlay").classList.remove("slide-in");
+            document.getElementById("mp-host-overlay").classList.add("slide-in");
+
+            if (typeof Peer === "undefined") {
+                document.getElementById("mp-host-status-text").textContent = "Couldn't load multiplayer library. Check your connection.";
+                return;
+            }
+
+            mp.peer = new Peer("bebilia-" + mp.code);
+
+            mp.peer.on("open", function () {
+                // ready to receive a connection
+            });
+
+            mp.peer.on("connection", function (conn) {
+                if (mp.conn) {
+                    // already have a player connected - reject additional joiners
+                    conn.close();
+                    return;
+                }
+                mp.conn = conn;
+                setupMpConnection();
+            });
+
+            mp.peer.on("error", function (err) {
+                console.error("Peer error (host):", err);
+                document.getElementById("mp-host-status-text").textContent = "Connection error. Try again.";
+            });
+        }
+
+        function copyLobbyCode() {
+            if (!mp.code) return;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(mp.code).catch(() => {});
+            }
+            let btn = event.currentTarget;
+            let original = btn.textContent;
+            btn.textContent = "Copied!";
+            setTimeout(() => { btn.textContent = original; }, 1200);
+        }
+
+        function leaveHostLobby() {
+            leaveLobbyCompletely();
+            document.getElementById("mp-host-overlay").classList.remove("slide-in");
+            document.getElementById("multiplayer-select-overlay").classList.add("slide-in");
+        }
+
+        // ----- Joining a lobby -----
         function joinLobby() {
-            // TODO: hook up lobby joining
+            resetMpState();
+            mp.active = true;
+            mp.isHost = false;
+
+            document.getElementById("mp-join-error").textContent = "";
+            document.getElementById("mp-join-status-row").style.display = "none";
+            document.getElementById("mp-join-code-input").value = "";
+
+            document.getElementById("multiplayer-select-overlay").classList.remove("slide-in");
+            document.getElementById("mp-join-overlay").classList.add("slide-in");
+        }
+
+        function submitJoinCode() {
+            let input = document.getElementById("mp-join-code-input");
+            let code = input.value.trim().toUpperCase();
+            let errorEl = document.getElementById("mp-join-error");
+            errorEl.textContent = "";
+
+            if (!code) {
+                errorEl.textContent = "Enter a lobby code first.";
+                return;
+            }
+            if (typeof Peer === "undefined") {
+                errorEl.textContent = "Couldn't load multiplayer library. Check your connection.";
+                return;
+            }
+
+            document.getElementById("mp-join-submit-btn").disabled = true;
+            mp.code = code;
+
+            mp.peer = new Peer();
+
+            mp.peer.on("open", function () {
+                let conn = mp.peer.connect("bebilia-" + code, { reliable: true });
+                mp.conn = conn;
+
+                let connectTimeout = setTimeout(function () {
+                    if (!mp.connected) {
+                        errorEl.textContent = "Couldn't find that lobby. Check the code and try again.";
+                        document.getElementById("mp-join-submit-btn").disabled = false;
+                        teardownPeer();
+                        resetMpState();
+                        mp.active = true;
+                        mp.isHost = false;
+                    }
+                }, 12000);
+
+                conn.on("open", function () {
+                    clearTimeout(connectTimeout);
+                    setupMpConnection();
+                    document.getElementById("mp-join-status-row").style.display = "flex";
+                    document.getElementById("mp-join-status-dot").classList.add("connected");
+                    document.getElementById("mp-join-status-text").textContent = "Connected! Waiting for host to start...";
+                });
+            });
+
+            mp.peer.on("error", function (err) {
+                console.error("Peer error (join):", err);
+                errorEl.textContent = "Couldn't find that lobby. Check the code and try again.";
+                document.getElementById("mp-join-submit-btn").disabled = false;
+            });
+        }
+
+        function leaveJoinLobby() {
+            leaveLobbyCompletely();
+            document.getElementById("mp-join-submit-btn").disabled = false;
+            document.getElementById("mp-join-overlay").classList.remove("slide-in");
+            document.getElementById("multiplayer-select-overlay").classList.add("slide-in");
+        }
+
+        // ----- Shared connection setup (both host and joiner run this once connected) -----
+        function setupMpConnection() {
+            mp.connected = true;
+
+            if (mp.isHost) {
+                document.getElementById("mp-host-status-dot").classList.add("connected");
+                document.getElementById("mp-host-status-text").textContent = "Friend connected!";
+                document.getElementById("mp-start-game-btn").disabled = false;
+            }
+
+            mp.conn.on("data", handleMpMessage);
+
+            mp.conn.on("close", function () {
+                mp.connected = false;
+                mp.remote.room = null;
+                if (mp.isHost) {
+                    document.getElementById("mp-host-status-dot").classList.remove("connected");
+                    document.getElementById("mp-host-status-text").textContent = "Friend disconnected.";
+                    document.getElementById("mp-start-game-btn").disabled = true;
+                } else {
+                    document.getElementById("mp-join-status-text").textContent = "Host disconnected.";
+                }
+                let statusEl = document.getElementById("mp-char-select-status");
+                if (statusEl) statusEl.textContent = "Your friend disconnected.";
+            });
+        }
+
+        function handleMpMessage(data) {
+            if (!data || !data.type) return;
+
+            if (data.type === "start") {
+                goToCharacterSelectFromMultiplayer();
+            } else if (data.type === "character") {
+                mp.remote.character = data.character;
+                mp.remoteCharChosen = true;
+                updateCharSelectStatusText();
+                checkBothChosenAndStart();
+            } else if (data.type === "state") {
+                mp.remote.x = data.x;
+                mp.remote.y = data.y;
+                mp.remote.room = data.room;
+                mp.remote.direction = data.direction;
+                mp.remote.isWalking = data.isWalking;
+                mp.remote.walkFrame = data.walkFrame;
+                mp.remote.hp = data.hp;
+                mp.remote.character = data.character;
+            }
+        }
+
+        // Host presses "Start Game" - tells the guest to jump to character select too.
+        function startMultiplayerGame() {
+            if (!mp.connected || !mp.conn) return;
+            mp.conn.send({ type: "start" });
+            goToCharacterSelectFromMultiplayer();
+        }
+
+        function goToCharacterSelectFromMultiplayer() {
+            document.getElementById("mp-host-overlay").classList.remove("slide-in");
+            document.getElementById("mp-join-overlay").classList.remove("slide-in");
+            document.getElementById("mp-char-select-status").textContent = "";
+            document.getElementById("character-select-overlay").classList.add("slide-in");
+        }
+
+        function updateCharSelectStatusText() {
+            let statusEl = document.getElementById("mp-char-select-status");
+            if (!statusEl) return;
+            if (mp.myCharChosen && !mp.remoteCharChosen) {
+                statusEl.textContent = "Waiting for your friend to pick a character...";
+            } else if (!mp.myCharChosen && mp.remoteCharChosen) {
+                statusEl.textContent = "Your friend picked a character. Your turn!";
+            } else if (mp.myCharChosen && mp.remoteCharChosen) {
+                statusEl.textContent = "Both ready - starting!";
+            } else {
+                statusEl.textContent = "";
+            }
+        }
+
+        function checkBothChosenAndStart() {
+            if (mp.myCharChosen && mp.remoteCharChosen && !mp.gameStarted) {
+                mp.gameStarted = true;
+                document.getElementById("character-select-overlay").classList.remove("slide-in");
+                startActualGame();
+            }
         }
 
         function selectCharacterAndStart(characterId) {
             selectedCharacter = characterId;
-            document.getElementById("character-select-overlay").classList.remove("slide-in");
 
             if (characterId === "prank" && prankCharacterVideo && prankCharacterVideo.paused) {
                 prankCharacterVideo.play().catch(e => {});
             }
 
+            if (mp.active) {
+                mp.myCharChosen = true;
+                if (mp.conn && mp.connected) {
+                    mp.conn.send({ type: "character", character: characterId });
+                }
+                updateCharSelectStatusText();
+                checkBothChosenAndStart();
+                return;
+            }
+
+            document.getElementById("character-select-overlay").classList.remove("slide-in");
             startActualGame();
         }
 
@@ -2276,7 +2703,73 @@
                 }
             }
 
+            broadcastMpState();
             drawGame();
+        }
+
+        // Sends this client's position/state to the other player over the
+        // WebRTC data channel, throttled to ~20 times per second.
+        function broadcastMpState() {
+            if (!mp.active || !mp.connected || !mp.conn || !player) return;
+            mp.sendTimer++;
+            if (mp.sendTimer < 3) return;
+            mp.sendTimer = 0;
+            try {
+                mp.conn.send({
+                    type: "state",
+                    x: player.x,
+                    y: player.y,
+                    room: currentRoom,
+                    direction: player.direction,
+                    isWalking: player.isWalking,
+                    walkFrame: player.walkFrame,
+                    hp: player.hp,
+                    character: selectedCharacter
+                });
+            } catch (e) {}
+        }
+
+        // Draws a translucent "ghost" of the other player when they're in
+        // the same room, using the same sprite sets as the local player.
+        function drawRemotePlayer(ctx) {
+            if (!mp.active || mp.remote.room !== currentRoom || !mp.remote.character) return;
+
+            let remoteSpriteSet = characterSpriteSets[mp.remote.character] || characterSpriteSets.bebilia;
+            let sprite = remoteSpriteSet.down;
+            if (mp.remote.direction === "up") sprite = remoteSpriteSet.up;
+            if (mp.remote.direction === "left") sprite = remoteSpriteSet.left;
+            if (mp.remote.direction === "right") sprite = remoteSpriteSet.right;
+
+            if (mp.remote.isWalking) {
+                let dir = mp.remote.direction in remoteSpriteSet.walk ? mp.remote.direction : "down";
+                let walkFrame = (mp.remote.walkFrame in remoteSpriteSet.walk[dir]) ? mp.remote.walkFrame : 0;
+                let walkSprite = remoteSpriteSet.walk[dir][walkFrame];
+                if (walkSprite && walkSprite.complete && walkSprite.naturalWidth !== 0) {
+                    sprite = walkSprite;
+                }
+            }
+
+            let size = 55;
+            ctx.save();
+            ctx.globalAlpha = 0.85;
+            if (sprite && sprite.complete && sprite.naturalWidth !== 0) {
+                ctx.drawImage(sprite, mp.remote.x - size, mp.remote.y - size, size * 2, size * 2);
+            } else {
+                ctx.fillStyle = "#70d6ff";
+                ctx.beginPath();
+                ctx.arc(mp.remote.x, mp.remote.y, size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+
+            ctx.fillStyle = "#ffffff";
+            ctx.strokeStyle = "rgba(0,0,0,0.6)";
+            ctx.lineWidth = 3;
+            ctx.font = "bold 13px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "bottom";
+            ctx.strokeText("Friend", mp.remote.x, mp.remote.y - size - 6);
+            ctx.fillText("Friend", mp.remote.x, mp.remote.y - size - 6);
         }
 
         function drawGame() {
@@ -2653,6 +3146,8 @@
                     drawShoopdawhoopBeam(ctx, player, activeItemLaser, wallThickness);
                 }
             }
+
+            drawRemotePlayer(ctx);
 
             for (let d of dyingEnemies) {
                 let deathSpriteToUse = enemyDeathSprite;
