@@ -333,11 +333,16 @@
             width: 100%;
             height: 100%;
             display: none;
-            z-index: 25;
+            z-index: 26;
             cursor: pointer;
             display: flex;
             justify-content: center;
             align-items: center;
+            transition: transform 0.6s cubic-bezier(0.65, 0, 0.35, 1);
+        }
+
+        #start-screen-overlay.slide-up-out {
+            transform: translateY(-100%);
         }
 
         #start-screen-overlay img {
@@ -345,6 +350,93 @@
             height: 360px;
             object-fit: fill; 
             display: block;
+        }
+
+        #character-select-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 25;
+            background: linear-gradient(180deg, #2b0f16 0%, #4a1622 100%);
+            transform: translateY(100%);
+            transition: transform 0.6s cubic-bezier(0.65, 0, 0.35, 1);
+        }
+
+        #character-select-overlay.slide-in {
+            transform: translateY(0);
+        }
+
+        .char-select-title {
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            font-weight: bold;
+            font-size: 1.4rem;
+            letter-spacing: 1px;
+            margin-bottom: 22px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+        }
+
+        .char-select-row {
+            display: flex;
+            gap: 18px;
+        }
+
+        .char-slot {
+            width: 84px;
+            height: 84px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.35);
+            border: 3px solid rgba(255, 255, 255, 0.25);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.15s, border-color 0.15s, background 0.15s;
+            position: relative;
+        }
+
+        .char-slot img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            image-rendering: pixelated;
+        }
+
+        .char-slot:not(.char-slot-locked):hover {
+            transform: translateY(-6px) scale(1.06);
+            border-color: #ffd166;
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .char-slot-locked {
+            cursor: default;
+            opacity: 0.55;
+        }
+
+        .char-slot-question {
+            color: #ffffff;
+            font-size: 2rem;
+            font-weight: bold;
+            font-family: Arial, sans-serif;
+        }
+
+        .char-select-label {
+            position: absolute;
+            bottom: -26px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.7);
         }
 
         .game-wrapper:-webkit-full-screen ~ .game-big-flower,
@@ -517,8 +609,34 @@
                         <img src="arrow.png" alt="Arrow">
                     </div>
 
-                    <div id="start-screen-overlay" onclick="startActualGame()">
+                    <div id="start-screen-overlay" onclick="goToCharacterSelect()">
                         <img src="startscreen.png" alt="Start Screen">
+                    </div>
+
+                    <div id="character-select-overlay">
+                        <div class="char-select-title">CHOOSE YOUR CHARACTER</div>
+                        <div class="char-select-row">
+                            <div class="char-slot" onclick="selectCharacterAndStart('bebilia')">
+                                <img src="player_down.png" alt="Bebilia" onerror="this.style.display='none'">
+                                <div class="char-select-label">Bebilia</div>
+                            </div>
+                            <div class="char-slot" onclick="selectCharacterAndStart('oktik')">
+                                <img src="oktik_down.png" alt="Oktik" onerror="this.style.display='none'">
+                                <div class="char-select-label">Oktik</div>
+                            </div>
+                            <div class="char-slot char-slot-locked">
+                                <div class="char-slot-question">?</div>
+                                <div class="char-select-label">???</div>
+                            </div>
+                            <div class="char-slot char-slot-locked">
+                                <div class="char-slot-question">?</div>
+                                <div class="char-select-label">???</div>
+                            </div>
+                            <div class="char-slot char-slot-locked">
+                                <div class="char-slot-question">?</div>
+                                <div class="char-select-label">???</div>
+                            </div>
+                        </div>
                     </div>
 
                     <canvas id="gameCanvas" width="1280" height="960"></canvas>
@@ -754,6 +872,7 @@
 
         let canvas, ctx;
         let enemyFlashCanvas = null, enemyFlashCtx = null;
+        let selectedCharacter = "bebilia";
         let gameInterval = null;
         let player, keys = {}, tears = [], enemies = [], dyingEnemies = [];
         let shootCooldown = 0;
@@ -1009,6 +1128,57 @@
         const spriteRight = new Image();
         spriteRight.src = "player_right.png";
 
+        const walkSprites = {
+            down: [new Image(), new Image()],
+            up: [new Image(), new Image()],
+            left: [new Image(), new Image()],
+            right: [new Image(), new Image()]
+        };
+        walkSprites.down[0].src = "bebiliawalk1_down.png";
+        walkSprites.down[1].src = "bebiliawalk2_down.png";
+        walkSprites.up[0].src = "bebiliawalk1_up.png";
+        walkSprites.up[1].src = "bebiliawalk2_up.png";
+        walkSprites.left[0].src = "bebiliawalk1_left.png";
+        walkSprites.left[1].src = "bebiliawalk2_left.png";
+        walkSprites.right[0].src = "bebiliawalk1_right.png";
+        walkSprites.right[1].src = "bebiliawalk2_right.png";
+
+        // Oktik: second selectable character. Uses the same idle/walk sprite
+        // naming convention as Bebilia so art can be dropped in the same way.
+        const oktikSpriteDown = new Image();
+        oktikSpriteDown.src = "oktik_down.png";
+
+        const oktikSpriteUp = new Image();
+        oktikSpriteUp.src = "oktik_up.png";
+
+        const oktikSpriteLeft = new Image();
+        oktikSpriteLeft.src = "oktik_left.png";
+
+        const oktikSpriteRight = new Image();
+        oktikSpriteRight.src = "oktik_right.png";
+
+        const oktikWalkSprites = {
+            down: [new Image(), new Image()],
+            up: [new Image(), new Image()],
+            left: [new Image(), new Image()],
+            right: [new Image(), new Image()]
+        };
+        oktikWalkSprites.down[0].src = "oktikwalk1_down.png";
+        oktikWalkSprites.down[1].src = "oktikwalk2_down.png";
+        oktikWalkSprites.up[0].src = "oktikwalk1_up.png";
+        oktikWalkSprites.up[1].src = "oktikwalk2_up.png";
+        oktikWalkSprites.left[0].src = "oktikwalk1_left.png";
+        oktikWalkSprites.left[1].src = "oktikwalk2_left.png";
+        oktikWalkSprites.right[0].src = "oktikwalk1_right.png";
+        oktikWalkSprites.right[1].src = "oktikwalk2_right.png";
+
+        // Maps a selected character id to its sprite set. Add entries here
+        // when the other 3 blank character slots get their own art + id.
+        const characterSpriteSets = {
+            bebilia: { down: spriteDown, up: spriteUp, left: spriteLeft, right: spriteRight, walk: walkSprites },
+            oktik: { down: oktikSpriteDown, up: oktikSpriteUp, left: oktikSpriteLeft, right: oktikSpriteRight, walk: oktikWalkSprites }
+        };
+
         const tearSprite = new Image();
         tearSprite.src = "tear.png";
 
@@ -1181,7 +1351,10 @@
                 speed: 6,
                 direction: "down",
                 hp: 6,
-                hasHoming: false
+                hasHoming: false,
+                isWalking: false,
+                walkFrame: 0,
+                walkTimer: 0
             };
 
             tears = [];
@@ -1200,6 +1373,7 @@
             if (prankVid) { prankVid.pause(); prankVid.currentTime = 0; }
 
             drawGame();
+            resetStartOverlays();
 
             if (document.fullscreenElement || document.webkitFullscreenElement) {
                 document.getElementById("fullscreen-prompt-overlay").style.display = "none";
@@ -1246,7 +1420,32 @@
             hitCooldown = 0;
 
             document.getElementById("start-screen-overlay").style.display = "flex";
+            resetStartOverlays();
             drawGame();
+        }
+
+        // Resets the title-screen and character-select overlays back to their
+        // starting positions (title visible, character select slid out of view).
+        function resetStartOverlays() {
+            let startOverlay = document.getElementById("start-screen-overlay");
+            let charOverlay = document.getElementById("character-select-overlay");
+            startOverlay.classList.remove("slide-up-out");
+            charOverlay.classList.remove("slide-in");
+        }
+
+        // Isaac-style transition: the title screen slides up and out while the
+        // character select screen slides up into view from below.
+        function goToCharacterSelect() {
+            let startOverlay = document.getElementById("start-screen-overlay");
+            let charOverlay = document.getElementById("character-select-overlay");
+            startOverlay.classList.add("slide-up-out");
+            charOverlay.classList.add("slide-in");
+        }
+
+        function selectCharacterAndStart(characterId) {
+            selectedCharacter = characterId;
+            document.getElementById("character-select-overlay").classList.remove("slide-in");
+            startActualGame();
         }
 
         function startActualGame() {
@@ -1416,6 +1615,18 @@
             if (keys['s'] || keys['S']) moveY += 1;
             if (keys['a'] || keys['A']) moveX -= 1;
             if (keys['d'] || keys['D']) moveX += 1;
+
+            player.isWalking = (moveX !== 0 || moveY !== 0);
+            if (player.isWalking) {
+                player.walkTimer++;
+                if (player.walkTimer >= 10) {
+                    player.walkTimer = 0;
+                    player.walkFrame = player.walkFrame === 0 ? 1 : 0;
+                }
+            } else {
+                player.walkTimer = 0;
+                player.walkFrame = 0;
+            }
 
             if (moveX !== 0 && moveY !== 0) {
                 moveX *= 0.7071;
@@ -2171,10 +2382,21 @@
                 }
             }
 
-            let currentSprite = spriteDown;
-            if (player && player.direction === "up") currentSprite = spriteUp;
-            if (player && player.direction === "left") currentSprite = spriteLeft;
-            if (player && player.direction === "right") currentSprite = spriteRight;
+            let activeSpriteSet = characterSpriteSets[selectedCharacter] || characterSpriteSets.bebilia;
+
+            let currentSprite = activeSpriteSet.down;
+            if (player && player.direction === "up") currentSprite = activeSpriteSet.up;
+            if (player && player.direction === "left") currentSprite = activeSpriteSet.left;
+            if (player && player.direction === "right") currentSprite = activeSpriteSet.right;
+
+            if (player && player.isWalking) {
+                let dir = player.direction in activeSpriteSet.walk ? player.direction : "down";
+                let walkSprite = activeSpriteSet.walk[dir][player.walkFrame];
+                if (walkSprite.complete && walkSprite.naturalWidth !== 0) {
+                    currentSprite = walkSprite;
+                }
+                // If the walk sprite hasn't loaded, currentSprite stays on the idle sprite for that direction.
+            }
 
             if (player) {
                 if (hitCooldown % 10 < 5) { 
