@@ -476,7 +476,11 @@
             color: #ff6b6b;
         }
 
-        #mode-select-overlay.slide-up-out {
+        #mode-select-overlay.slide-up-out,
+        #character-select-overlay.slide-up-out,
+        #multiplayer-select-overlay.slide-up-out,
+        #mp-host-overlay.slide-up-out,
+        #mp-join-overlay.slide-up-out {
             transform: translateY(-100%);
         }
 
@@ -857,7 +861,6 @@
                             <div class="status-dot" id="mp-host-status-dot"></div>
                             <span id="mp-host-status-text">Waiting for friend to join...</span>
                         </div>
-                        <div class="mp-hint-text">Send them this code so they can join from the "Join Lobby" menu.</div>
                         <div class="menu-btn-col">
                             <button class="menu-btn" onclick="copyLobbyCode()">Copy Code</button>
                             <button class="menu-btn" id="mp-start-game-btn" onclick="startMultiplayerGame()" disabled>Start Game</button>
@@ -1728,10 +1731,10 @@
             let mpJoinOverlay = document.getElementById("mp-join-overlay");
             startOverlay.classList.remove("slide-up-out");
             modeOverlay.classList.remove("slide-in", "slide-up-out");
-            multiplayerOverlay.classList.remove("slide-in");
-            charOverlay.classList.remove("slide-in");
-            mpHostOverlay.classList.remove("slide-in");
-            mpJoinOverlay.classList.remove("slide-in");
+            multiplayerOverlay.classList.remove("slide-in", "slide-up-out");
+            charOverlay.classList.remove("slide-in", "slide-up-out");
+            mpHostOverlay.classList.remove("slide-in", "slide-up-out");
+            mpJoinOverlay.classList.remove("slide-in", "slide-up-out");
             teardownPeer();
             resetMpState();
         }
@@ -1768,7 +1771,6 @@
             if (mp.active) {
                 leaveLobbyCompletely();
                 document.getElementById("character-select-overlay").classList.remove("slide-in");
-                document.getElementById("mode-select-overlay").classList.add("slide-in");
                 document.getElementById("mode-select-overlay").classList.remove("slide-up-out");
                 return;
             }
@@ -1856,8 +1858,8 @@
         function leaveLobbyCompletely() {
             teardownPeer();
             resetMpState();
-            document.getElementById("mp-host-overlay").classList.remove("slide-in");
-            document.getElementById("mp-join-overlay").classList.remove("slide-in");
+            document.getElementById("mp-host-overlay").classList.remove("slide-in", "slide-up-out");
+            document.getElementById("mp-join-overlay").classList.remove("slide-in", "slide-up-out");
             document.getElementById("mp-start-game-btn").disabled = true;
             document.getElementById("mp-host-status-dot").classList.remove("connected");
             document.getElementById("mp-host-status-text").textContent = "Waiting for friend to join...";
@@ -1879,7 +1881,7 @@
             document.getElementById("mp-host-status-dot").classList.remove("connected");
             document.getElementById("mp-host-status-text").textContent = "Waiting for friend to join...";
 
-            document.getElementById("multiplayer-select-overlay").classList.remove("slide-in");
+            document.getElementById("multiplayer-select-overlay").classList.add("slide-up-out");
             document.getElementById("mp-host-overlay").classList.add("slide-in");
 
             if (typeof Peer === "undefined") {
@@ -1922,8 +1924,7 @@
 
         function leaveHostLobby() {
             leaveLobbyCompletely();
-            document.getElementById("mp-host-overlay").classList.remove("slide-in");
-            document.getElementById("multiplayer-select-overlay").classList.add("slide-in");
+            document.getElementById("multiplayer-select-overlay").classList.remove("slide-up-out");
         }
 
         // ----- Joining a lobby -----
@@ -1936,7 +1937,7 @@
             document.getElementById("mp-join-status-row").style.display = "none";
             document.getElementById("mp-join-code-input").value = "";
 
-            document.getElementById("multiplayer-select-overlay").classList.remove("slide-in");
+            document.getElementById("multiplayer-select-overlay").classList.add("slide-up-out");
             document.getElementById("mp-join-overlay").classList.add("slide-in");
         }
 
@@ -1994,8 +1995,7 @@
         function leaveJoinLobby() {
             leaveLobbyCompletely();
             document.getElementById("mp-join-submit-btn").disabled = false;
-            document.getElementById("mp-join-overlay").classList.remove("slide-in");
-            document.getElementById("multiplayer-select-overlay").classList.add("slide-in");
+            document.getElementById("multiplayer-select-overlay").classList.remove("slide-up-out");
         }
 
         // ----- Shared connection setup (both host and joiner run this once connected) -----
@@ -2055,8 +2055,8 @@
         }
 
         function goToCharacterSelectFromMultiplayer() {
-            document.getElementById("mp-host-overlay").classList.remove("slide-in");
-            document.getElementById("mp-join-overlay").classList.remove("slide-in");
+            document.getElementById("mp-host-overlay").classList.add("slide-up-out");
+            document.getElementById("mp-join-overlay").classList.add("slide-up-out");
             document.getElementById("mp-char-select-status").textContent = "";
             document.getElementById("character-select-overlay").classList.add("slide-in");
         }
