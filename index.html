@@ -983,9 +983,9 @@
                                 <img src="assets/images/characters/oktik_down.png" alt="Oktik" onerror="this.style.display='none'">
                                 <div class="char-select-label">Oktik</div>
                             </div>
-                            <div class="char-slot" onclick="selectCharacterAndStart('prank')">
-                                <div class="char-slot-question">?</div>
-                                <div class="char-select-label">???</div>
+                            <div class="char-slot" onclick="selectCharacterAndStart('mia')">
+                                <img src="assets/images/characters/mia_down.png" alt="Mia" onerror="this.style.display='none'">
+                                <div class="char-select-label">Mia</div>
                             </div>
                             <div class="char-slot char-slot-locked">
                                 <div class="char-slot-question">?</div>
@@ -1570,11 +1570,41 @@
         oktikWalkSprites.right[0].src = "assets/images/characters/oktikwalk1_right.png";
         oktikWalkSprites.right[1].src = "assets/images/characters/oktikwalk2_right.png";
 
+        // Mia: third selectable character. Uses the same idle/walk sprite
+        // naming convention as Bebilia and Oktik so art can be dropped in the same way.
+        const miaSpriteDown = new Image();
+        miaSpriteDown.src = "assets/images/characters/mia_down.png";
+
+        const miaSpriteUp = new Image();
+        miaSpriteUp.src = "assets/images/characters/mia_up.png";
+
+        const miaSpriteLeft = new Image();
+        miaSpriteLeft.src = "assets/images/characters/mia_left.png";
+
+        const miaSpriteRight = new Image();
+        miaSpriteRight.src = "assets/images/characters/mia_right.png";
+
+        const miaWalkSprites = {
+            down: [new Image(), new Image()],
+            up: [new Image(), new Image()],
+            left: [new Image(), new Image()],
+            right: [new Image(), new Image()]
+        };
+        miaWalkSprites.down[0].src = "assets/images/characters/miawalk1_down.png";
+        miaWalkSprites.down[1].src = "assets/images/characters/miawalk2_down.png";
+        miaWalkSprites.up[0].src = "assets/images/characters/miawalk1_up.png";
+        miaWalkSprites.up[1].src = "assets/images/characters/miawalk2_up.png";
+        miaWalkSprites.left[0].src = "assets/images/characters/miawalk1_left.png";
+        miaWalkSprites.left[1].src = "assets/images/characters/miawalk2_left.png";
+        miaWalkSprites.right[0].src = "assets/images/characters/miawalk1_right.png";
+        miaWalkSprites.right[1].src = "assets/images/characters/miawalk2_right.png";
+
         // Maps a selected character id to its sprite set. Add entries here
-        // when the other 3 blank character slots get their own art + id.
+        // when the other 2 blank character slots get their own art + id.
         const characterSpriteSets = {
             bebilia: { down: spriteDown, up: spriteUp, left: spriteLeft, right: spriteRight, walk: walkSprites },
-            oktik: { down: oktikSpriteDown, up: oktikSpriteUp, left: oktikSpriteLeft, right: oktikSpriteRight, walk: oktikWalkSprites }
+            oktik: { down: oktikSpriteDown, up: oktikSpriteUp, left: oktikSpriteLeft, right: oktikSpriteRight, walk: oktikWalkSprites },
+            mia: { down: miaSpriteDown, up: miaSpriteUp, left: miaSpriteLeft, right: miaSpriteRight, walk: miaWalkSprites }
         };
 
         const tearSprite = new Image();
