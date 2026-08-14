@@ -688,45 +688,45 @@
 
     <!-- Site background song added here -->
     <audio id="site-bg-music" loop>
-        <source src="yaamc.mp3" type="audio/mp3">
+        <source src="assets/audio/music/yaamc.mp3" type="audio/mp3">
     </audio>
 
     <audio id="game-music" loop>
-        <source src="gamemusic.mp3" type="audio/mp3">
+        <source src="assets/audio/music/gamemusic.mp3" type="audio/mp3">
     </audio>
 
     <audio id="ambient-music" loop>
-        <source src="ambientmusic.mp3" type="audio/mp3">
+        <source src="assets/audio/music/ambientmusic.mp3" type="audio/mp3">
     </audio>
 
-    <audio id="sfx-shoot"><source src="shoot.mp3" type="audio/mp3"></audio>
-    <audio id="sfx-hit"><source src="hit.mp3" type="audio/mp3"></audio>
-    <audio id="sfx-enemy-hit"><source src="enemyhit.mp3" type="audio/mp3"></audio>
-    <audio id="sfx-enemy-death"><source src="enemydeath.mp3" type="audio/mp3"></audio>
-    <audio id="sfx-enemy-ambient"><source src="enemyambient.mp3" type="audio/mp3"></audio>
-    <audio id="sfx-enemy2-ambient"><source src="enemy2ambient.mp3" type="audio/mp3"></audio>
-    <audio id="sfx-enemy3-ambient"><source src="enemy3ambient.mp3" type="audio/mp3"></audio>
-    <audio id="sfx-pickup"><source src="yay.mp3" type="audio/mp3"></audio>
-    <audio id="sfx-prank-enter"><source src="prankenter.mp3" type="audio/mp3"></audio>
+    <audio id="sfx-shoot"><source src="assets/audio/sfx/shoot.mp3" type="audio/mp3"></audio>
+    <audio id="sfx-hit"><source src="assets/audio/sfx/hit.mp3" type="audio/mp3"></audio>
+    <audio id="sfx-enemy-hit"><source src="assets/audio/sfx/enemyhit.mp3" type="audio/mp3"></audio>
+    <audio id="sfx-enemy-death"><source src="assets/audio/sfx/enemydeath.mp3" type="audio/mp3"></audio>
+    <audio id="sfx-enemy-ambient"><source src="assets/audio/sfx/enemyambient.mp3" type="audio/mp3"></audio>
+    <audio id="sfx-enemy2-ambient"><source src="assets/audio/sfx/enemy2ambient.mp3" type="audio/mp3"></audio>
+    <audio id="sfx-enemy3-ambient"><source src="assets/audio/sfx/enemy3ambient.mp3" type="audio/mp3"></audio>
+    <audio id="sfx-pickup"><source src="assets/audio/sfx/yay.mp3" type="audio/mp3"></audio>
+    <audio id="sfx-prank-enter"><source src="assets/audio/sfx/prankenter.mp3" type="audio/mp3"></audio>
 
     <!-- Room Entry Specific Audio Track Elements -->
-    <audio id="sfx-room2"><source src="room2intro.mp3" type="audio/mp3"></audio>
-    <audio id="sfx-room4"><source src="room4intro.mp3" type="audio/mp3"></audio>
-    <audio id="sfx-room5"><source src="room5intro.mp3" type="audio/mp3"></audio>
+    <audio id="sfx-room2"><source src="assets/audio/sfx/room2intro.mp3" type="audio/mp3"></audio>
+    <audio id="sfx-room4"><source src="assets/audio/sfx/room4intro.mp3" type="audio/mp3"></audio>
+    <audio id="sfx-room5"><source src="assets/audio/sfx/room5intro.mp3" type="audio/mp3"></audio>
 
     <!-- Prank Room Video Element -->
-    <video id="prank-video" src="prankvideo.mp4" loop playsinline preload="auto" style="display:none;"></video>
+    <video id="prank-video" src="assets/video/prankvideo.mp4" loop playsinline preload="auto" style="display:none;"></video>
 
     <!-- Dedicated video element for the "???" character, which uses the prank
          room video as its sprite in every direction, idle or walking. Kept
          separate from #prank-video so the prank-room jump-scare feature and
          this character's sprite don't fight over play/pause state. -->
-    <video id="prank-character-video" src="prankvideo.mp4" loop muted playsinline preload="auto" style="display:none;"></video>
+    <video id="prank-character-video" src="assets/video/prankvideo.mp4" loop muted playsinline preload="auto" style="display:none;"></video>
 
-    <img src="flower.png" class="corner-img top-left" alt="Flower Corner">
-    <img src="flower.png" class="corner-img top-right" alt="Flower Corner">
-    <img src="flower.png" class="corner-img bottom-left" alt="Flower Corner">
-    <img src="flower.png" class="corner-img bottom-right" alt="Flower Corner">
+    <img src="assets/images/ui/flower.png" class="corner-img top-left" alt="Flower Corner">
+    <img src="assets/images/ui/flower.png" class="corner-img top-right" alt="Flower Corner">
+    <img src="assets/images/ui/flower.png" class="corner-img bottom-left" alt="Flower Corner">
+    <img src="assets/images/ui/flower.png" class="corner-img bottom-right" alt="Flower Corner">
 
     <div class="main-card">
         
@@ -736,17 +736,17 @@
 
             <div class="app-menu">
                 <button class="app-icon-btn" onclick="openSection('reasons-section')">
-                    <img src="btn-reasons.png" alt="Reasons Icon">
+                    <img src="assets/images/ui/btn-reasons.png" alt="Reasons Icon">
                     <span>100 Reasons</span>
                 </button>
 
                 <button class="app-icon-btn" onclick="openSection('gallery-section')">
-                    <img src="btn-gallery.png" alt="Our Photos">
+                    <img src="assets/images/ui/btn-gallery.png" alt="Our Photos">
                     <span>Our Photos</span>
                 </button>
 
                 <button class="app-icon-btn" onclick="openSection('game-section'); initGameSession();">
-                    <img src="btn-game.png" alt="Game Icon">
+                    <img src="assets/images/ui/btn-game.png" alt="Game Icon">
                     <span>Mini Game</span>
                 </button>
             </div>
@@ -771,17 +771,17 @@
 
             <div class="app-menu">
                 <button class="app-icon-btn" onclick="openSection('meetup1-section')">
-                    <img src="meetup1-icon.png" alt="Meetup 1 Icon">
+                    <img src="assets/images/ui/meetup1-icon.png" alt="Meetup 1 Icon">
                     <span>Meetup 1</span>
                 </button>
 
                 <button class="app-icon-btn" onclick="openSection('meetup2-section')">
-                    <img src="meetup2-icon.png" alt="Meetup 2 Icon">
+                    <img src="assets/images/ui/meetup2-icon.png" alt="Meetup 2 Icon">
                     <span>Meetup 2</span>
                 </button>
 
                 <button class="app-icon-btn" onclick="openSection('meetup3-section')">
-                    <img src="meetup3-icon.png" alt="Meetup 3 Icon">
+                    <img src="assets/images/ui/meetup3-icon.png" alt="Meetup 3 Icon">
                     <span>Meetup 3</span>
                 </button>
             </div>
@@ -819,20 +819,20 @@
             
             <div class="fullscreen-prompt-container">
                 <div class="fullscreen-prompt-text">PLEASE FULLSCREENIT</div>
-                <img src="arrow.png" class="red-arrow" alt="Red Arrow">
+                <img src="assets/images/ui/arrow.png" class="red-arrow" alt="Red Arrow">
                 <button class="fullscreen-btn" onclick="toggleFullscreen()">Fullscreen Game ⛶</button>
             </div>
             
             <div class="game-container-outer" style="display: block; text-align: center;">
-                <img src="flower-border.png" class="game-big-flower gbf-top-right" alt="Flower">
+                <img src="assets/images/ui/flower-border.png" class="game-big-flower gbf-top-right" alt="Flower">
 
                 <div class="game-wrapper" id="gameWrapper">
                     <div id="fullscreen-prompt-overlay" onclick="toggleFullscreen()">
-                        <img src="arrow.png" alt="Arrow">
+                        <img src="assets/images/ui/arrow.png" alt="Arrow">
                     </div>
 
                     <div id="start-screen-overlay" onclick="goToModeSelect()">
-                        <img src="startscreen.png" alt="Start Screen">
+                        <img src="assets/images/ui/startscreen.png" alt="Start Screen">
                     </div>
 
                     <div id="mode-select-overlay">
@@ -887,11 +887,11 @@
                         <div class="mp-hint-text" id="mp-char-select-status"></div>
                         <div class="char-select-row">
                             <div class="char-slot" onclick="selectCharacterAndStart('bebilia')">
-                                <img src="player_down.png" alt="Bebilia" onerror="this.style.display='none'">
+                                <img src="assets/images/characters/player_down.png" alt="Bebilia" onerror="this.style.display='none'">
                                 <div class="char-select-label">Bebilia</div>
                             </div>
                             <div class="char-slot" onclick="selectCharacterAndStart('oktik')">
-                                <img src="oktik_down.png" alt="Oktik" onerror="this.style.display='none'">
+                                <img src="assets/images/characters/oktik_down.png" alt="Oktik" onerror="this.style.display='none'">
                                 <div class="char-select-label">Oktik</div>
                             </div>
                             <div class="char-slot" onclick="selectCharacterAndStart('prank')">
@@ -1130,8 +1130,8 @@
 
         // Build the Meetup 1 grid (5 columns x 20 rows = 100 photo slots).
         // Add photos by placing files named 1photo1.png, 1photo2.png, ... 1photo100.png
-        // in the same folder as this HTML file.
-        buildMemoryGrid("meetup1-grid", "1photo", 100);
+        // in assets/images/gallery/
+        buildMemoryGrid("meetup1-grid", "assets/images/gallery/1photo", 100);
 
         function goHome() {
             stopGameEngine();
@@ -1387,34 +1387,34 @@
         }
 
         const floorSprite = new Image();
-        floorSprite.src = "floor.png";
+        floorSprite.src = "assets/images/environment/floor.png";
 
         const skullSprite = new Image();
-        skullSprite.src = "skull.png";
+        skullSprite.src = "assets/images/environment/skull.png";
 
         const controlImg1 = new Image();
-        controlImg1.src = "control1.png";
+        controlImg1.src = "assets/images/ui/control1.png";
 
         const controlImg2 = new Image();
-        controlImg2.src = "control2.png";
+        controlImg2.src = "assets/images/ui/control2.png";
 
         const controlImg3 = new Image();
-        controlImg3.src = "control3.png";
+        controlImg3.src = "assets/images/ui/control3.png";
 
         const controlImg4 = new Image();
-        controlImg4.src = "control4.png";
+        controlImg4.src = "assets/images/ui/control4.png";
 
         const spriteDown = new Image();
-        spriteDown.src = "player_down.png";
+        spriteDown.src = "assets/images/characters/player_down.png";
 
         const spriteUp = new Image();
-        spriteUp.src = "player_up.png";
+        spriteUp.src = "assets/images/characters/player_up.png";
 
         const spriteLeft = new Image();
-        spriteLeft.src = "player_left.png";
+        spriteLeft.src = "assets/images/characters/player_left.png";
 
         const spriteRight = new Image();
-        spriteRight.src = "player_right.png";
+        spriteRight.src = "assets/images/characters/player_right.png";
 
         const walkSprites = {
             down: [new Image(), new Image()],
@@ -1422,28 +1422,28 @@
             left: [new Image(), new Image()],
             right: [new Image(), new Image()]
         };
-        walkSprites.down[0].src = "bebiliawalk1_down.png";
-        walkSprites.down[1].src = "bebiliawalk2_down.png";
-        walkSprites.up[0].src = "bebiliawalk1_up.png";
-        walkSprites.up[1].src = "bebiliawalk2_up.png";
-        walkSprites.left[0].src = "bebiliawalk1_left.png";
-        walkSprites.left[1].src = "bebiliawalk2_left.png";
-        walkSprites.right[0].src = "bebiliawalk1_right.png";
-        walkSprites.right[1].src = "bebiliawalk2_right.png";
+        walkSprites.down[0].src = "assets/images/characters/bebiliawalk1_down.png";
+        walkSprites.down[1].src = "assets/images/characters/bebiliawalk2_down.png";
+        walkSprites.up[0].src = "assets/images/characters/bebiliawalk1_up.png";
+        walkSprites.up[1].src = "assets/images/characters/bebiliawalk2_up.png";
+        walkSprites.left[0].src = "assets/images/characters/bebiliawalk1_left.png";
+        walkSprites.left[1].src = "assets/images/characters/bebiliawalk2_left.png";
+        walkSprites.right[0].src = "assets/images/characters/bebiliawalk1_right.png";
+        walkSprites.right[1].src = "assets/images/characters/bebiliawalk2_right.png";
 
         // Oktik: second selectable character. Uses the same idle/walk sprite
         // naming convention as Bebilia so art can be dropped in the same way.
         const oktikSpriteDown = new Image();
-        oktikSpriteDown.src = "oktik_down.png";
+        oktikSpriteDown.src = "assets/images/characters/oktik_down.png";
 
         const oktikSpriteUp = new Image();
-        oktikSpriteUp.src = "oktik_up.png";
+        oktikSpriteUp.src = "assets/images/characters/oktik_up.png";
 
         const oktikSpriteLeft = new Image();
-        oktikSpriteLeft.src = "oktik_left.png";
+        oktikSpriteLeft.src = "assets/images/characters/oktik_left.png";
 
         const oktikSpriteRight = new Image();
-        oktikSpriteRight.src = "oktik_right.png";
+        oktikSpriteRight.src = "assets/images/characters/oktik_right.png";
 
         const oktikWalkSprites = {
             down: [new Image(), new Image()],
@@ -1451,14 +1451,14 @@
             left: [new Image(), new Image()],
             right: [new Image(), new Image()]
         };
-        oktikWalkSprites.down[0].src = "oktikwalk1_down.png";
-        oktikWalkSprites.down[1].src = "oktikwalk2_down.png";
-        oktikWalkSprites.up[0].src = "oktikwalk1_up.png";
-        oktikWalkSprites.up[1].src = "oktikwalk2_up.png";
-        oktikWalkSprites.left[0].src = "oktikwalk1_left.png";
-        oktikWalkSprites.left[1].src = "oktikwalk2_left.png";
-        oktikWalkSprites.right[0].src = "oktikwalk1_right.png";
-        oktikWalkSprites.right[1].src = "oktikwalk2_right.png";
+        oktikWalkSprites.down[0].src = "assets/images/characters/oktikwalk1_down.png";
+        oktikWalkSprites.down[1].src = "assets/images/characters/oktikwalk2_down.png";
+        oktikWalkSprites.up[0].src = "assets/images/characters/oktikwalk1_up.png";
+        oktikWalkSprites.up[1].src = "assets/images/characters/oktikwalk2_up.png";
+        oktikWalkSprites.left[0].src = "assets/images/characters/oktikwalk1_left.png";
+        oktikWalkSprites.left[1].src = "assets/images/characters/oktikwalk2_left.png";
+        oktikWalkSprites.right[0].src = "assets/images/characters/oktikwalk1_right.png";
+        oktikWalkSprites.right[1].src = "assets/images/characters/oktikwalk2_right.png";
 
         // Maps a selected character id to its sprite set. Add entries here
         // when the other 3 blank character slots get their own art + id.
@@ -1468,70 +1468,70 @@
         };
 
         const tearSprite = new Image();
-        tearSprite.src = "tear.png";
+        tearSprite.src = "assets/images/ui/tear.png";
 
         const heartSprite = new Image();
-        heartSprite.src = "heart.png";
+        heartSprite.src = "assets/images/ui/heart.png";
 
         const halfHeartSprite = new Image();
-        halfHeartSprite.src = "hearthalf.png";
+        halfHeartSprite.src = "assets/images/ui/hearthalf.png";
 
         const enemySpriteUp = new Image();
-        enemySpriteUp.src = "enemy1up.png";
+        enemySpriteUp.src = "assets/images/characters/enemy1up.png";
 
         const enemySpriteDown = new Image();
-        enemySpriteDown.src = "enemy1down.png";
+        enemySpriteDown.src = "assets/images/characters/enemy1down.png";
 
         const enemySpriteLeft = new Image();
-        enemySpriteLeft.src = "enemy1left.png";
+        enemySpriteLeft.src = "assets/images/characters/enemy1left.png";
 
         const enemySpriteRight = new Image();
-        enemySpriteRight.src = "enemy1right.png";
+        enemySpriteRight.src = "assets/images/characters/enemy1right.png";
 
         const enemyDeathSprite = new Image();
-        enemyDeathSprite.src = "enemy1death.png";
+        enemyDeathSprite.src = "assets/images/characters/enemy1death.png";
 
         const enemy2SpriteUp = new Image();
-        enemy2SpriteUp.src = "enemy2up.png";
+        enemy2SpriteUp.src = "assets/images/characters/enemy2up.png";
 
         const enemy2SpriteDown = new Image();
-        enemy2SpriteDown.src = "enemy2down.png";
+        enemy2SpriteDown.src = "assets/images/characters/enemy2down.png";
 
         const enemy2SpriteLeft = new Image();
-        enemy2SpriteLeft.src = "enemy2left.png";
+        enemy2SpriteLeft.src = "assets/images/characters/enemy2left.png";
 
         const enemy2SpriteRight = new Image();
-        enemy2SpriteRight.src = "enemy2right.png";
+        enemy2SpriteRight.src = "assets/images/characters/enemy2right.png";
 
         const enemy2DeathSprite = new Image();
-        enemy2DeathSprite.src = "enemy2death.png";
+        enemy2DeathSprite.src = "assets/images/characters/enemy2death.png";
 
         const enemy3SpriteUp = new Image();
-        enemy3SpriteUp.src = "enemy3up.png";
+        enemy3SpriteUp.src = "assets/images/characters/enemy3up.png";
 
         const enemy3SpriteDown = new Image();
-        enemy3SpriteDown.src = "enemy3down.png";
+        enemy3SpriteDown.src = "assets/images/characters/enemy3down.png";
 
         const enemy3SpriteLeft = new Image();
-        enemy3SpriteLeft.src = "enemy3left.png";
+        enemy3SpriteLeft.src = "assets/images/characters/enemy3left.png";
 
         const enemy3SpriteRight = new Image();
-        enemy3SpriteRight.src = "enemy3right.png";
+        enemy3SpriteRight.src = "assets/images/characters/enemy3right.png";
 
         const enemy3DeathSprite = new Image();
-        enemy3DeathSprite.src = "enemy3death.png";
+        enemy3DeathSprite.src = "assets/images/characters/enemy3death.png";
 
         const pedestalSprite = new Image();
-        pedestalSprite.src = "pedestal.png";
+        pedestalSprite.src = "assets/images/environment/pedestal.png";
 
         const spoonphemusSprite = new Image();
-        spoonphemusSprite.src = "spoonphemus.png";
+        spoonphemusSprite.src = "assets/images/items/spoonphemus.png";
 
         const shoopdawhoopSprite = new Image();
-        shoopdawhoopSprite.src = "shoopdawhoop.png";
+        shoopdawhoopSprite.src = "assets/images/items/shoopdawhoop.png";
 
         const trinketSprite = new Image();
-        trinketSprite.src = "trinket.png";
+        trinketSprite.src = "assets/images/items/trinket.png";
 
         let flashCanvas = document.createElement('canvas');
         let flashCtx = flashCanvas.getContext('2d', { willReadFrequently: true });
