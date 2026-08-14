@@ -2326,6 +2326,64 @@
                 mp.remote.walkFrame = data.walkFrame;
                 mp.remote.hp = data.hp;
                 mp.remote.character = data.character;
+
+                // Only the HOST ever sends enemies/tears - this is the
+                // guest applying the host's authoritative room state.
+                if (!mp.isHost && mp.gameStarted && data.enemies && player) {
+                    if (data.room !== currentRoom) {
+                        // Isaac-style co-op: get pulled into whatever room
+                        // the host just entered.
+                        stopEnemyAmbientSounds();
+                        currentRoom = data.room;
+                        discoveredRooms[currentRoom] = true;
+                        transitionAnim = 1.0;
+                        slideDirection = data.slideDirection || 'up';
+                        player.x = canvas.width / 2;
+                        player.y = canvas.height / 2;
+                        hitCooldown = 60;
+                    }
+
+                    enemies = data.enemies.map(function (en) {
+                        return {
+                            type: en.type, x: en.x, y: en.y, size: en.size,
+                            hp: en.hp, maxHp: en.maxHp, direction: en.direction,
+                            hitFlashTimer: en.hitFlashTimer,
+                            ambientTimer: 0, nextAmbientInterval: 999999
+                        };
+                    });
+                    tears = data.tears.map(function (t) {
+                        return { x: t.x, y: t.y, vx: 0, vy: 0, damage: 0, radius: t.radius, isHoming: t.isHoming };
+                    });
+                    dyingEnemies = data.dyingEnemies.map(function (d) {
+                        return { type: d.type, x: d.x, y: d.y, size: d.size, timer: d.timer };
+                    });
+                    clearedRooms[currentRoom] = !!data.cleared;
+                }
+            } else if (data.type === "roomChange") {
+                // Only the HOST acts on this - the guest walked through a
+                // door, so the host (who owns enemies/rooms) follows along.
+                if (mp.isHost && mp.gameStarted && player) {
+                    stopEnemyAmbientSounds();
+                    tears = [];
+                    currentRoom = data.room;
+                    discoveredRooms[currentRoom] = true;
+                    transitionAnim = 1.0;
+                    slideDirection = data.slideDirection || 'down';
+                    player.x = canvas.width / 2;
+                    player.y = canvas.height / 2;
+                    hitCooldown = 60;
+                    spawnEnemiesForRoom(currentRoom);
+                }
+            } else if (data.type === "shoot") {
+                // Only the HOST acts on this - a guest's tear gets added to
+                // the authoritative tears array so it can actually hit
+                // (and be seen hitting) the shared enemies.
+                if (mp.isHost && mp.gameStarted) {
+                    tears.push({
+                        x: data.x, y: data.y, vx: data.vx, vy: data.vy,
+                        damage: data.damage, radius: data.radius, isHoming: data.isHoming
+                    });
+                }
             } else if (data.type === "chat") {
                 addGameChatMessage("Friend", String(data.text || "").slice(0, 200), "remote");
             }
@@ -2677,6 +2735,14 @@
         function updateGame() {
             if (!gameRunning) return;
 
+            // In multiplayer, the HOST is the single source of truth for
+            // enemies/tears/room state (just like Isaac co-op, where the
+            // game logic runs on one machine and the other follows along).
+            // The guest still moves their own character locally for a
+            // responsive feel, but defers enemy AI, tear physics, and room
+            // transitions to whatever the host broadcasts.
+            let isNetGuest = mp.active && mp.connected && mp.gameStarted && !mp.isHost;
+
             updateConfetti();
             updateItemBanner(1000 / 60);
             updateRoomBanner(1000 / 60);
@@ -2908,6 +2974,19 @@
                 player.x = newPlayerX;
                 player.y = newPlayerY;
                 roomChanged = true;
+
+                // Multiplayer: whoever walks through a door pulls the other
+                // player along, Isaac-style. The guest can't spawn its own
+                // enemies (the host owns that), so it just tells the host
+                // which room it moved to and waits for the host's next
+                // broadcast to supply the real enemy list.
+                if (isNetGuest) {
+                    dyingEnemies = [];
+                    enemies = [];
+                    try {
+                        mp.conn.send({ type: "roomChange", room: currentRoom, slideDirection: newSlideDir });
+                    } catch (e) {}
+                }
             }
 
             let prankVid = document.getElementById("prank-video");
@@ -2927,7 +3006,7 @@
                 }
             }
 
-            if (roomChanged) {
+            if (roomChanged && !isNetGuest) {
                 spawnEnemiesForRoom(currentRoom);
             }
 
@@ -2939,9 +3018,23 @@
             let tearDmg = player.hasHoming ? 15 : 5;
             let tearRad = player.hasHoming ? 40 : 20;
 
+            // Spawns a tear. Solo/host: goes straight into the authoritative
+            // `tears` array like before. Guest: no local physics/collision
+            // happens for tears anymore (the host owns that), so the shot is
+            // just sent over the wire and will appear once the host echoes
+            // it back in its next broadcast.
+            function spawnTear(tx, ty, tvx, tvy) {
+                let tear = {x: tx, y: ty, vx: tvx, vy: tvy, damage: tearDmg, radius: tearRad, isHoming: player.hasHoming};
+                if (isNetGuest) {
+                    try { mp.conn.send(Object.assign({ type: "shoot" }, tear)); } catch (e) {}
+                } else {
+                    tears.push(tear);
+                }
+            }
+
             if (keys['arrowup']) {
                 if (shootCooldown === 0) {
-                    tears.push({x: player.x, y: player.y - player.size, vx: 0, vy: -shootSpeed, damage: tearDmg, radius: tearRad, isHoming: player.hasHoming});
+                    spawnTear(player.x, player.y - player.size, 0, -shootSpeed);
                     shootCooldown = 28;
                     playSfx('sfx-shoot', 0.4);
                 }
@@ -2949,7 +3042,7 @@
                 isShooting = true;
             } else if (keys['arrowdown']) {
                 if (shootCooldown === 0) {
-                    tears.push({x: player.x, y: player.y + player.size, vx: 0, vy: shootSpeed, damage: tearDmg, radius: tearRad, isHoming: player.hasHoming});
+                    spawnTear(player.x, player.y + player.size, 0, shootSpeed);
                     shootCooldown = 28;
                     playSfx('sfx-shoot', 0.4);
                 }
@@ -2957,7 +3050,7 @@
                 isShooting = true;
             } else if (keys['arrowleft']) {
                 if (shootCooldown === 0) {
-                    tears.push({x: player.x - player.size, y: player.y, vx: -shootSpeed, vy: 0, damage: tearDmg, radius: tearRad, isHoming: player.hasHoming});
+                    spawnTear(player.x - player.size, player.y, -shootSpeed, 0);
                     shootCooldown = 28;
                     playSfx('sfx-shoot', 0.4);
                 }
@@ -2965,7 +3058,7 @@
                 isShooting = true;
             } else if (keys['arrowright']) {
                 if (shootCooldown === 0) {
-                    tears.push({x: player.x + player.size, y: player.y, vx: shootSpeed, vy: 0, damage: tearDmg, radius: tearRad, isHoming: player.hasHoming});
+                    spawnTear(player.x + player.size, player.y, shootSpeed, 0);
                     shootCooldown = 28;
                     playSfx('sfx-shoot', 0.4);
                 }
@@ -2980,6 +3073,12 @@
                 else if (moveX > 0) player.direction = "right";
             }
 
+            // Everything below (tear movement/collision, the Shoopdawhoop
+            // laser's damage tick, and enemy AI/HP) is authoritative game
+            // logic that only runs on the host (or locally in singleplayer).
+            // A networked guest instead just receives the results of this
+            // simulation from the host each broadcast and renders them.
+            if (!isNetGuest) {
             for (let i = tears.length - 1; i >= 0; i--) {
                 let t = tears[i];
 
@@ -3097,8 +3196,18 @@
                         : Math.floor(Math.random() * (180 - 60 + 1)) + 60;
                 }
 
-                let dx = player.x - en.x;
-                let dy = player.y - en.y;
+                let targetX = player.x, targetY = player.y;
+                if (mp.active && mp.connected && mp.remote.room === currentRoom) {
+                    let distToLocal = Math.hypot(player.x - en.x, player.y - en.y);
+                    let distToRemote = Math.hypot(mp.remote.x - en.x, mp.remote.y - en.y);
+                    if (distToRemote < distToLocal) {
+                        targetX = mp.remote.x;
+                        targetY = mp.remote.y;
+                    }
+                }
+
+                let dx = targetX - en.x;
+                let dy = targetY - en.y;
                 let dist = Math.hypot(dx, dy);
                 if (dist > 1) {
                     en.x += (dx / dist) * enemySpeed;
@@ -3142,20 +3251,58 @@
                     }
                 }
             }
+            } else {
+                // Guest: enemies/tears/dyingEnemies are whatever the host
+                // last broadcast (see handleMpMessage). Just fade out dying
+                // enemies locally between broadcasts for smoothness, and
+                // take contact damage from the synced enemy positions -
+                // the host doesn't know this player's exact hitbox timing,
+                // so each client resolves its own contact damage.
+                if (activeItemLaser.firing) {
+                    activeItemLaser.timer--;
+                    if (activeItemLaser.timer <= 0) activeItemLaser.firing = false;
+                }
+
+                for (let d = dyingEnemies.length - 1; d >= 0; d--) {
+                    dyingEnemies[d].timer--;
+                    if (dyingEnemies[d].timer <= 0) dyingEnemies.splice(d, 1);
+                }
+
+                if (hitCooldown === 0) {
+                    for (let en of enemies) {
+                        let pDist = Math.hypot(player.x - en.x, player.y - en.y);
+                        if (pDist < player.size + en.size - 25) {
+                            player.hp -= 1;
+                            hitCooldown = 60;
+                            playSfx('sfx-hit');
+                            if (player.hp <= 0) {
+                                player.hp = 0;
+                                triggerDeath();
+                                return;
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
 
             broadcastMpState();
             drawGame();
         }
 
         // Sends this client's position/state to the other player over the
-        // WebRTC data channel, throttled to ~20 times per second.
+        // WebRTC data channel, throttled to ~20 times per second. The host
+        // additionally piggybacks its authoritative enemies/tears/room state
+        // on the same message so the guest can mirror it (real Isaac-style
+        // shared enemies and tears, instead of each player fighting their
+        // own separate copy of the room).
         function broadcastMpState() {
             if (!mp.active || !mp.connected || !mp.conn || !player) return;
             mp.sendTimer++;
             if (mp.sendTimer < 3) return;
             mp.sendTimer = 0;
             try {
-                mp.conn.send({
+                let payload = {
                     type: "state",
                     x: player.x,
                     y: player.y,
@@ -3165,7 +3312,27 @@
                     walkFrame: player.walkFrame,
                     hp: player.hp,
                     character: selectedCharacter
-                });
+                };
+
+                if (mp.isHost) {
+                    payload.slideDirection = slideDirection;
+                    payload.cleared = (enemies.length === 0);
+                    payload.enemies = enemies.map(function (en) {
+                        return {
+                            type: en.type, x: en.x, y: en.y, size: en.size,
+                            hp: en.hp, maxHp: en.maxHp, direction: en.direction,
+                            hitFlashTimer: en.hitFlashTimer
+                        };
+                    });
+                    payload.tears = tears.map(function (t) {
+                        return { x: t.x, y: t.y, radius: t.radius, isHoming: t.isHoming };
+                    });
+                    payload.dyingEnemies = dyingEnemies.map(function (d) {
+                        return { type: d.type, x: d.x, y: d.y, size: d.size, timer: d.timer };
+                    });
+                }
+
+                mp.conn.send(payload);
             } catch (e) {}
         }
 
