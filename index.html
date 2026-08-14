@@ -305,6 +305,95 @@
             image-rendering: crisp-edges;
         }
 
+        #game-chat-box {
+            position: absolute;
+            left: 14px;
+            bottom: 58px;
+            width: 220px;
+            max-width: 55%;
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+            font-family: Arial, sans-serif;
+        }
+
+        #game-chat-box.visible {
+            opacity: 1;
+        }
+
+        #game-chat-messages {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            max-height: 110px;
+            overflow: hidden;
+            justify-content: flex-end;
+        }
+
+        .game-chat-message {
+            background: rgba(0, 0, 0, 0.55);
+            color: #ffffff;
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 8px;
+            line-height: 1.25;
+            word-break: break-word;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+            animation: gameChatMsgIn 0.2s ease;
+        }
+
+        .game-chat-message .chat-sender {
+            font-weight: bold;
+            margin-right: 4px;
+        }
+
+        .game-chat-message.self .chat-sender { color: #ff9db3; }
+        .game-chat-message.remote .chat-sender { color: #7ad7ff; }
+
+        @keyframes gameChatMsgIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #game-chat-input-row {
+            display: none;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 8px;
+            padding: 4px 8px;
+        }
+
+        #game-chat-input-row.active {
+            display: flex;
+        }
+
+        #game-chat-input {
+            flex: 1;
+            width: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #ffffff;
+            font-size: 0.78rem;
+            font-family: Arial, sans-serif;
+        }
+
+        #game-chat-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .game-wrapper:-webkit-full-screen #game-chat-box,
+        .game-wrapper:fullscreen #game-chat-box {
+            left: 24px;
+            bottom: 90px;
+            width: 260px;
+        }
+
         #fullscreen-prompt-overlay {
             position: absolute;
             top: 0;
@@ -910,6 +999,13 @@
                     </div>
 
                     <canvas id="gameCanvas" width="1280" height="960"></canvas>
+
+                    <div id="game-chat-box">
+                        <div id="game-chat-messages"></div>
+                        <div id="game-chat-input-row">
+                            <input type="text" id="game-chat-input" maxlength="120" placeholder="Press Enter to send..." autocomplete="off">
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1166,6 +1262,20 @@
         let shootCooldown = 0;
         let gameRunning = false;
         let gamePausedForMenu = false;
+
+        // Simple in-game chat: press "T" to open, Enter to send, and the
+        // whole widget fades out after 3 seconds of no activity. Works the
+        // same in singleplayer (local echo only) and multiplayer (sent to
+        // the other player over the PeerJS data channel).
+        let gameChat = {
+            open: false,
+            hideTimer: null,
+            boxEl: null,
+            messagesEl: null,
+            inputRowEl: null,
+            inputEl: null,
+            listenersBound: false
+        };
         let hitCooldown = 0;
 
         let currentRoom = 1; 
@@ -2186,6 +2296,8 @@
                 mp.remote.walkFrame = data.walkFrame;
                 mp.remote.hp = data.hp;
                 mp.remote.character = data.character;
+            } else if (data.type === "chat") {
+                addGameChatMessage("Friend", String(data.text || "").slice(0, 200), "remote");
             }
         }
 
@@ -2252,6 +2364,7 @@
             playAmbientMusic();
             gameRunning = true;
             gamePausedForMenu = false;
+            resetGameChatState();
 
             window.addEventListener('keydown', handleKeyDown);
             window.addEventListener('keyup', handleKeyUp);
@@ -2270,10 +2383,19 @@
             }
             window.removeEventListener('keydown', handleKeyDown);
             window.removeEventListener('keyup', handleKeyUp);
+            resetGameChatState();
         }
 
         function handleKeyDown(e) {
             if (!gameRunning) return;
+            if (document.activeElement === gameChat.inputEl) return;
+
+            if (!gameChat.open && e.key.toLowerCase() === "t" && !gamePausedForMenu) {
+                e.preventDefault();
+                openGameChatInput();
+                return;
+            }
+
             keys[e.key.toLowerCase()] = true;
             if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(e.key.toLowerCase())) {
                 e.preventDefault();
@@ -2296,7 +2418,141 @@
 
         function handleKeyUp(e) {
             if (!gameRunning) return;
+            if (document.activeElement === gameChat.inputEl) return;
             keys[e.key.toLowerCase()] = false;
+        }
+
+        // ==========================================
+        // IN-GAME CHAT
+        // ==========================================
+        // Grabs (once) and caches the chat DOM elements, and wires up the
+        // text input's own key handling. The input listens with
+        // stopPropagation so typing never reaches the window-level game
+        // key handlers (no moving the player while chatting).
+        function initGameChatRefs() {
+            if (gameChat.listenersBound) return;
+            gameChat.boxEl = document.getElementById("game-chat-box");
+            gameChat.messagesEl = document.getElementById("game-chat-messages");
+            gameChat.inputRowEl = document.getElementById("game-chat-input-row");
+            gameChat.inputEl = document.getElementById("game-chat-input");
+            if (!gameChat.boxEl || !gameChat.inputEl) return;
+
+            gameChat.inputEl.addEventListener("keydown", function (e) {
+                e.stopPropagation();
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    sendGameChatMessage();
+                } else if (e.key === "Escape") {
+                    e.preventDefault();
+                    cancelGameChatInput();
+                } else {
+                    resetGameChatHideTimer();
+                }
+            });
+            gameChat.inputEl.addEventListener("keyup", function (e) {
+                e.stopPropagation();
+            });
+
+            gameChat.listenersBound = true;
+        }
+
+        // "T" pressed - opens the input row and starts the 3-second
+        // inactivity countdown for the whole widget.
+        function openGameChatInput() {
+            initGameChatRefs();
+            if (!gameChat.boxEl) return;
+            gameChat.open = true;
+            gameChat.boxEl.classList.add("visible");
+            gameChat.inputRowEl.classList.add("active");
+            gameChat.inputEl.value = "";
+            resetGameChatHideTimer();
+            setTimeout(function () { gameChat.inputEl.focus(); }, 0);
+        }
+
+        // Escape pressed - discards whatever was typed and closes the input,
+        // but leaves any previous messages showing until they fade on their own.
+        function cancelGameChatInput() {
+            gameChat.inputEl.value = "";
+            gameChat.open = false;
+            gameChat.inputRowEl.classList.remove("active");
+            gameChat.inputEl.blur();
+            resetGameChatHideTimer();
+        }
+
+        // Enter pressed - sends the message locally and, in multiplayer,
+        // over the PeerJS data channel to the other player.
+        function sendGameChatMessage() {
+            if (!gameChat.inputEl) return;
+            let text = gameChat.inputEl.value.trim();
+            gameChat.inputEl.value = "";
+            gameChat.open = false;
+            gameChat.inputRowEl.classList.remove("active");
+            gameChat.inputEl.blur();
+
+            if (!text) {
+                resetGameChatHideTimer();
+                return;
+            }
+
+            addGameChatMessage("You", text, "self");
+
+            if (mp.active && mp.connected && mp.conn) {
+                try { mp.conn.send({ type: "chat", text: text }); } catch (e) {}
+            }
+        }
+
+        // Appends a message bubble (keeping only the last few) and makes
+        // sure the widget is visible, resetting the auto-fade timer.
+        function addGameChatMessage(sender, text, cls) {
+            initGameChatRefs();
+            if (!gameChat.messagesEl) return;
+
+            let msgEl = document.createElement("div");
+            msgEl.className = "game-chat-message " + cls;
+            let senderSpan = document.createElement("span");
+            senderSpan.className = "chat-sender";
+            senderSpan.textContent = sender + ":";
+            msgEl.appendChild(senderSpan);
+            msgEl.appendChild(document.createTextNode(" " + text));
+            gameChat.messagesEl.appendChild(msgEl);
+
+            while (gameChat.messagesEl.children.length > 4) {
+                gameChat.messagesEl.removeChild(gameChat.messagesEl.firstChild);
+            }
+
+            gameChat.boxEl.classList.add("visible");
+            resetGameChatHideTimer();
+        }
+
+        // Restarts the 3-second no-activity countdown. When it fires, the
+        // whole chat box fades out (and the input, if still open, is closed).
+        function resetGameChatHideTimer() {
+            if (gameChat.hideTimer) clearTimeout(gameChat.hideTimer);
+            gameChat.hideTimer = setTimeout(hideGameChatBox, 3000);
+        }
+
+        function hideGameChatBox() {
+            gameChat.hideTimer = null;
+            if (!gameChat.boxEl) return;
+            gameChat.boxEl.classList.remove("visible");
+            if (gameChat.open) {
+                gameChat.open = false;
+                gameChat.inputRowEl.classList.remove("active");
+                gameChat.inputEl.value = "";
+                gameChat.inputEl.blur();
+            }
+        }
+
+        // Called when a game session starts/ends so leftover chat state
+        // (open input, queued fade timer, old messages) never carries over.
+        function resetGameChatState() {
+            initGameChatRefs();
+            if (gameChat.hideTimer) { clearTimeout(gameChat.hideTimer); gameChat.hideTimer = null; }
+            gameChat.open = false;
+            if (gameChat.boxEl) gameChat.boxEl.classList.remove("visible");
+            if (gameChat.inputRowEl) gameChat.inputRowEl.classList.remove("active");
+            if (gameChat.inputEl) { gameChat.inputEl.value = ""; gameChat.inputEl.blur(); }
+            if (gameChat.messagesEl) gameChat.messagesEl.innerHTML = "";
         }
 
         function drawDoor(ctx, x, y, radius, startAngle, endAngle, anticlockwise = false, isGold = false) {
