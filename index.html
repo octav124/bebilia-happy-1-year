@@ -2332,15 +2332,15 @@
                 if (!mp.isHost && mp.gameStarted && data.enemies && player) {
                     if (data.room !== currentRoom) {
                         // Isaac-style co-op: get pulled into whatever room
-                        // the host just entered.
+                        // the host just entered, appearing right where the
+                        // host landed (i.e. in front of the door used).
                         stopEnemyAmbientSounds();
                         currentRoom = data.room;
                         discoveredRooms[currentRoom] = true;
                         transitionAnim = 1.0;
                         slideDirection = data.slideDirection || 'up';
-                        player.x = canvas.width / 2;
-                        player.y = canvas.height / 2;
-                        hitCooldown = 60;
+                        player.x = data.x;
+                        player.y = data.y;
                     }
 
                     enemies = data.enemies.map(function (en) {
@@ -2361,7 +2361,8 @@
                 }
             } else if (data.type === "roomChange") {
                 // Only the HOST acts on this - the guest walked through a
-                // door, so the host (who owns enemies/rooms) follows along.
+                // door, so the host (who owns enemies/rooms) follows along,
+                // landing at the same door-entry spot the guest used.
                 if (mp.isHost && mp.gameStarted && player) {
                     stopEnemyAmbientSounds();
                     tears = [];
@@ -2369,9 +2370,8 @@
                     discoveredRooms[currentRoom] = true;
                     transitionAnim = 1.0;
                     slideDirection = data.slideDirection || 'down';
-                    player.x = canvas.width / 2;
-                    player.y = canvas.height / 2;
-                    hitCooldown = 60;
+                    player.x = data.x;
+                    player.y = data.y;
                     spawnEnemiesForRoom(currentRoom);
                 }
             } else if (data.type === "shoot") {
@@ -2383,6 +2383,13 @@
                         x: data.x, y: data.y, vx: data.vx, vy: data.vy,
                         damage: data.damage, radius: data.radius, isHoming: data.isHoming
                     });
+                }
+            } else if (data.type === "laserTick") {
+                // Only the HOST acts on this - a guest's Shoopdawhoop beam
+                // damages the shared enemies the same way the host's own
+                // beam does.
+                if (mp.isHost && mp.gameStarted) {
+                    applyBeamDamage(data.x, data.y, data.direction, data.beamWidth, data.dmgPerFrame);
                 }
             } else if (data.type === "chat") {
                 addGameChatMessage("Friend", String(data.text || "").slice(0, 200), "remote");
@@ -2650,6 +2657,34 @@
             ctx.arc(x, y, radius, startAngle, endAngle, anticlockwise);
             ctx.fill();
             ctx.restore();
+        }
+
+        // Damages every enemy caught in a Shoopdawhoop laser beam fired from
+        // (originX, originY) in the given direction. Used both for the local
+        // player's own beam and for a networked guest's beam (relayed to the
+        // host, since the host is the only one allowed to touch enemy HP).
+        function applyBeamDamage(originX, originY, direction, beamWidth, dmgPerFrame) {
+            let halfBeam = beamWidth / 2;
+            for (let j = enemies.length - 1; j >= 0; j--) {
+                let en = enemies[j];
+                let inBeam = false;
+
+                if (direction === "up" || direction === "down") {
+                    if (Math.abs(en.x - originX) <= halfBeam + en.size) {
+                        if (direction === "up" && en.y <= originY) inBeam = true;
+                        if (direction === "down" && en.y >= originY) inBeam = true;
+                    }
+                } else {
+                    if (Math.abs(en.y - originY) <= halfBeam + en.size) {
+                        if (direction === "left" && en.x <= originX) inBeam = true;
+                        if (direction === "right" && en.x >= originX) inBeam = true;
+                    }
+                }
+
+                if (inBeam) {
+                    damageEnemyAtIndex(j, dmgPerFrame, false);
+                }
+            }
         }
 
         // Applies damage to enemies[j], flashes it red, plays hit/death sfx,
@@ -2984,7 +3019,7 @@
                     dyingEnemies = [];
                     enemies = [];
                     try {
-                        mp.conn.send({ type: "roomChange", room: currentRoom, slideDirection: newSlideDir });
+                        mp.conn.send({ type: "roomChange", room: currentRoom, slideDirection: newSlideDir, x: newPlayerX, y: newPlayerY });
                     } catch (e) {}
                 }
             }
@@ -3148,29 +3183,7 @@
                     activeItemLaser.firing = false;
                 } else {
                     let dmgThisFrame = activeItemLaser.totalDamage / activeItemLaser.duration;
-                    let dir = activeItemLaser.direction;
-                    let halfBeam = activeItemLaser.beamWidth / 2;
-
-                    for (let j = enemies.length - 1; j >= 0; j--) {
-                        let en = enemies[j];
-                        let inBeam = false;
-
-                        if (dir === "up" || dir === "down") {
-                            if (Math.abs(en.x - player.x) <= halfBeam + en.size) {
-                                if (dir === "up" && en.y <= player.y) inBeam = true;
-                                if (dir === "down" && en.y >= player.y) inBeam = true;
-                            }
-                        } else {
-                            if (Math.abs(en.y - player.y) <= halfBeam + en.size) {
-                                if (dir === "left" && en.x <= player.x) inBeam = true;
-                                if (dir === "right" && en.x >= player.x) inBeam = true;
-                            }
-                        }
-
-                        if (inBeam) {
-                            damageEnemyAtIndex(j, dmgThisFrame, false);
-                        }
-                    }
+                    applyBeamDamage(player.x, player.y, activeItemLaser.direction, activeItemLaser.beamWidth, dmgThisFrame);
                 }
             }
 
@@ -3260,7 +3273,19 @@
                 // so each client resolves its own contact damage.
                 if (activeItemLaser.firing) {
                     activeItemLaser.timer--;
-                    if (activeItemLaser.timer <= 0) activeItemLaser.firing = false;
+                    if (activeItemLaser.timer <= 0) {
+                        activeItemLaser.firing = false;
+                    } else {
+                        try {
+                            mp.conn.send({
+                                type: "laserTick",
+                                x: player.x, y: player.y,
+                                direction: activeItemLaser.direction,
+                                beamWidth: activeItemLaser.beamWidth,
+                                dmgPerFrame: activeItemLaser.totalDamage / activeItemLaser.duration
+                            });
+                        } catch (e) {}
+                    }
                 }
 
                 for (let d = dyingEnemies.length - 1; d >= 0; d--) {
