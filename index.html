@@ -106,6 +106,18 @@
             margin-bottom: 5px;
         }
 
+        #anniversary-timer {
+            color: #d90429;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        #anniversary-timer .timer-value {
+            font-variant-numeric: tabular-nums;
+        }
+
         p {
             color: #555;
             font-size: 0.95rem;
@@ -797,6 +809,7 @@
     <audio id="sfx-enemy3-ambient"><source src="assets/audio/sfx/enemy3ambient.mp3" type="audio/mp3"></audio>
     <audio id="sfx-pickup"><source src="assets/audio/sfx/yay.mp3" type="audio/mp3"></audio>
     <audio id="sfx-prank-enter"><source src="assets/audio/sfx/prankenter.mp3" type="audio/mp3"></audio>
+    <audio id="sfx-woah"><source src="assets/audio/sfx/roblox-woah.mp3" type="audio/mp3"></audio>
 
     <!-- Room Entry Specific Audio Track Elements -->
     <audio id="sfx-room2"><source src="assets/audio/sfx/room2intro.mp3" type="audio/mp3"></audio>
@@ -820,6 +833,7 @@
     <div class="main-card">
         
         <div id="home-screen">
+            <div id="anniversary-timer">Together for <span class="timer-value" id="anniversary-timer-value">00:00:00:00</span></div>
             <h1>Happy 1 Year Buby!!! :D</h1>
             <p>Choose an app, my love:</p>
 
@@ -841,13 +855,14 @@
             </div>
         </div>
 
-        <div id="reasons-section" class="section-content">
+        <div id="reasons-section" class="section-content" style="margin-top: -14px;">
             <button class="back-btn" onclick="goHome()">⬅ Back</button>
             <div style="clear: both;"></div>
             <h2 style="color: #d90429; text-align:center;">100 Reasons Why I Love You</h2>
-            <p style="text-align: center;" id="reason-display">Click the button below to get your first reason!</p>
+            <p style="text-align: center;" id="reasons-intro">Click the button below to get your first reason!</p>
             <div style="text-align: center;">
-                <button class="action-btn" onclick="alert('Logic for reasons goes here')">Next Reason <3</button>
+                <button class="action-btn" id="reason-btn" onclick="nextReason()">Next Reason <3</button>
+                <p style="text-align: center; margin-top: 18px; min-height: 1.4em; color: #d90429; font-weight: bold; font-size: 1.05rem;" id="reason-display"></p>
             </div>
         </div>
 
@@ -1018,6 +1033,9 @@
         </div>
 
     </div>
+
+    <!-- Confetti canvas for the "100 Reasons" page (separate from the game's canvas) -->
+    <canvas id="reasonsConfettiCanvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 9999;"></canvas>
 
     <!-- Lightbox overlay used to zoom into memory photos -->
     <div id="memoryLightbox" class="memory-lightbox-overlay" onclick="closeMemoryLightbox()">
@@ -4095,6 +4113,281 @@
             drawRoomBanner(ctx);
 
             ctx.restore();
+        }
+    </script>
+
+    <script>
+        // Live "time together" counter since Aug 6, 2025 6:00 PM (local time)
+        (function () {
+            var anniversaryStart = new Date(2025, 7, 6, 18, 0, 0); // month is 0-indexed: 7 = August
+
+            function pad(n) {
+                return String(n).padStart(2, '0');
+            }
+
+            function updateAnniversaryTimer() {
+                var el = document.getElementById('anniversary-timer-value');
+                if (!el) return;
+
+                var diffMs = Date.now() - anniversaryStart.getTime();
+                if (diffMs < 0) diffMs = 0;
+
+                var totalSeconds = Math.floor(diffMs / 1000);
+                var days = Math.floor(totalSeconds / 86400);
+                var hours = Math.floor((totalSeconds % 86400) / 3600);
+                var minutes = Math.floor((totalSeconds % 3600) / 60);
+                var seconds = totalSeconds % 60;
+
+                el.textContent = days + 'd ' + pad(hours) + ':' + pad(minutes) + ':' + pad(seconds);
+            }
+
+            updateAnniversaryTimer();
+            setInterval(updateAnniversaryTimer, 1000);
+        })();
+    </script>
+
+    <script>
+        // ==========================================================
+        // 100 REASONS WHY I LOVE YOU — fill in your reasons below!
+        // ==========================================================
+        // Each line is one reason, in order 1-100. Leave the quotes
+        // empty ("") for any you haven't written yet - those will just
+        // show a "reason coming soon" placeholder if they get picked.
+        // The reasons are shown in a random order that never repeats
+        // until all 100 have been seen, and after the very last one
+        // every click just shows "that's all :p" with big confetti.
+        const loveReasons = [
+            "", // Reason 1
+            "", // Reason 2
+            "", // Reason 3
+            "", // Reason 4
+            "", // Reason 5
+            "", // Reason 6
+            "", // Reason 7
+            "", // Reason 8
+            "", // Reason 9
+            "", // Reason 10
+            "", // Reason 11
+            "", // Reason 12
+            "", // Reason 13
+            "", // Reason 14
+            "", // Reason 15
+            "", // Reason 16
+            "", // Reason 17
+            "", // Reason 18
+            "", // Reason 19
+            "", // Reason 20
+            "", // Reason 21
+            "", // Reason 22
+            "", // Reason 23
+            "", // Reason 24
+            "", // Reason 25
+            "", // Reason 26
+            "", // Reason 27
+            "", // Reason 28
+            "", // Reason 29
+            "", // Reason 30
+            "", // Reason 31
+            "", // Reason 32
+            "", // Reason 33
+            "", // Reason 34
+            "", // Reason 35
+            "", // Reason 36
+            "", // Reason 37
+            "", // Reason 38
+            "", // Reason 39
+            "", // Reason 40
+            "", // Reason 41
+            "", // Reason 42
+            "", // Reason 43
+            "", // Reason 44
+            "", // Reason 45
+            "", // Reason 46
+            "", // Reason 47
+            "", // Reason 48
+            "", // Reason 49
+            "", // Reason 50
+            "", // Reason 51
+            "", // Reason 52
+            "", // Reason 53
+            "", // Reason 54
+            "", // Reason 55
+            "", // Reason 56
+            "", // Reason 57
+            "", // Reason 58
+            "", // Reason 59
+            "", // Reason 60
+            "", // Reason 61
+            "", // Reason 62
+            "", // Reason 63
+            "", // Reason 64
+            "", // Reason 65
+            "", // Reason 66
+            "", // Reason 67
+            "", // Reason 68
+            "", // Reason 69
+            "", // Reason 70
+            "", // Reason 71
+            "", // Reason 72
+            "", // Reason 73
+            "", // Reason 74
+            "", // Reason 75
+            "", // Reason 76
+            "", // Reason 77
+            "", // Reason 78
+            "", // Reason 79
+            "", // Reason 80
+            "", // Reason 81
+            "", // Reason 82
+            "", // Reason 83
+            "", // Reason 84
+            "", // Reason 85
+            "", // Reason 86
+            "", // Reason 87
+            "", // Reason 88
+            "", // Reason 89
+            "", // Reason 90
+            "", // Reason 91
+            "", // Reason 92
+            "", // Reason 93
+            "", // Reason 94
+            "", // Reason 95
+            "", // Reason 96
+            "", // Reason 97
+            "", // Reason 98
+            "", // Reason 99
+            ""  // Reason 100
+        ];
+        // ==========================================================
+        // END OF 100 REASONS LIST
+        // ==========================================================
+
+        let reasonsShuffledOrder = [];
+        let reasonsPointer = 0;
+        let reasonsAllSeen = false;
+
+        function shuffleReasonsArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        // --- Confetti system for the reasons page (mirrors the mini-game's item-pickup confetti) ---
+        let reasonsConfettiParticles = [];
+        let reasonsConfettiLoopRunning = false;
+
+        function resizeReasonsConfettiCanvas() {
+            const canvas = document.getElementById("reasonsConfettiCanvas");
+            if (!canvas) return;
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener("resize", resizeReasonsConfettiCanvas);
+
+        function triggerReasonsConfetti(x, y, count) {
+            const colors = ["#ff4136", "#2ecc40", "#0074d9", "#ffdc00", "#f012be", "#7fdbff", "#ffffff", "#ff4d6d"];
+            for (let i = 0; i < count; i++) {
+                reasonsConfettiParticles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 16,
+                    vy: Math.random() * -12 - 5,
+                    size: Math.random() * 8 + 6,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    rotation: Math.random() * Math.PI * 2,
+                    vRot: (Math.random() - 0.5) * 0.2,
+                    gravity: 0.35,
+                    alpha: 1.0,
+                    decay: Math.random() * 0.015 + 0.01
+                });
+            }
+            ensureReasonsConfettiLoop();
+        }
+
+        function ensureReasonsConfettiLoop() {
+            if (reasonsConfettiLoopRunning) return;
+            reasonsConfettiLoopRunning = true;
+            requestAnimationFrame(reasonsConfettiLoopStep);
+        }
+
+        function reasonsConfettiLoopStep() {
+            const canvas = document.getElementById("reasonsConfettiCanvas");
+            const rctx = canvas ? canvas.getContext("2d") : null;
+
+            if (rctx) {
+                rctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                for (let i = reasonsConfettiParticles.length - 1; i >= 0; i--) {
+                    const p = reasonsConfettiParticles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += p.gravity;
+                    p.rotation += p.vRot;
+                    p.alpha -= p.decay;
+
+                    if (p.alpha <= 0) {
+                        reasonsConfettiParticles.splice(i, 1);
+                        continue;
+                    }
+
+                    rctx.save();
+                    rctx.globalAlpha = Math.max(0, p.alpha);
+                    rctx.fillStyle = p.color;
+                    rctx.translate(p.x, p.y);
+                    rctx.rotate(p.rotation);
+                    rctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                    rctx.restore();
+                }
+            }
+
+            if (reasonsConfettiParticles.length > 0) {
+                requestAnimationFrame(reasonsConfettiLoopStep);
+            } else {
+                reasonsConfettiLoopRunning = false;
+                if (rctx) rctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+
+        // --- Main button handler ---
+        function nextReason() {
+            playSfx("sfx-woah", 0.8);
+
+            const btn = document.getElementById("reason-btn");
+            const display = document.getElementById("reason-display");
+            const intro = document.getElementById("reasons-intro");
+            if (intro) intro.style.display = "none";
+
+            resizeReasonsConfettiCanvas();
+            const rect = btn.getBoundingClientRect();
+            const burstX = rect.left + rect.width / 2;
+            const burstY = rect.top + rect.height / 2;
+
+            if (reasonsAllSeen) {
+                display.textContent = "that's all :p";
+                triggerReasonsConfetti(burstX, burstY, 400); // big big big confetti
+                return;
+            }
+
+            if (reasonsShuffledOrder.length === 0 || reasonsPointer >= reasonsShuffledOrder.length) {
+                reasonsShuffledOrder = shuffleReasonsArray(loveReasons.map((_, i) => i));
+                reasonsPointer = 0;
+            }
+
+            const reasonIndex = reasonsShuffledOrder[reasonsPointer];
+            reasonsPointer++;
+
+            const reasonText = loveReasons[reasonIndex];
+            display.textContent = reasonText && reasonText.trim() !== ""
+                ? reasonText
+                : "(reason " + (reasonIndex + 1) + " coming soon!)";
+
+            triggerReasonsConfetti(burstX, burstY, 50);
+
+            if (reasonsPointer >= reasonsShuffledOrder.length) {
+                reasonsAllSeen = true;
+            }
         }
     </script>
 </body>
